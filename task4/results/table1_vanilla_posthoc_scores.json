@@ -1,0 +1,42 @@
+[
+  {
+    "score": "MSP",
+    "auroc_near": 0.8092560625,
+    "auroc_far": 0.8879679375,
+    "auroc_all": 0.8486119999999999,
+    "threshold_tau": 0.14721740782260895,
+    "known_test_acceptance_rate": 0.9466,
+    "near_acceptance_rate_fpr95": 0.71,
+    "far_acceptance_rate_fpr95": 0.54625
+  },
+  {
+    "score": "MLS",
+    "auroc_near": 0.79132775,
+    "auroc_far": 0.879048,
+    "auroc_all": 0.8351878749999999,
+    "threshold_tau": -5.9608001708984375,
+    "known_test_acceptance_rate": 0.9466,
+    "near_acceptance_rate_fpr95": 0.67375,
+    "far_acceptance_rate_fpr95": 0.47625
+  },
+  {
+    "score": "Energy",
+    "auroc_near": 0.791155125,
+    "auroc_far": 0.8790070000000001,
+    "auroc_all": 0.8350810625,
+    "threshold_tau": -6.112387657165527,
+    "known_test_acceptance_rate": 0.9482,
+    "near_acceptance_rate_fpr95": 0.67875,
+    "far_acceptance_rate_fpr95": 0.4825
+  },
+  {
+    "score": "Mahalanobis",
+    "auroc_near": 0.8050389375000002,
+    "auroc_far": 0.9161260000000001,
+    "auroc_all": 0.86058246875,
+    "threshold_tau": 2879.70068359375,
+    "known_test_acceptance_rate": 0.9466,
+    "near_acceptance_rate_fpr95": 0.69375,
+    "far_acceptance_rate_fpr95": 0.4625
+  }
+]
