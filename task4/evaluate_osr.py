@@ -1,21 +1,178 @@
 from __future__ import annotations
 
-"""Common evaluation (Task 4, Step 6): builds both required tables.
+"""Common evaluation (Task 4, Step 6). Run after `extract_outputs.py` has cached
+{method}_{train,val,test,near,far}.pt for at least Vanilla (and GCSC, once trained).
 
-1. MSP/MLS/Energy/Mahalanobis on the frozen Vanilla model -- near/far/all AUROC and
-   validation-calibrated rejection (`task4.evaluation.thresholds.evaluate_score`).
-2. Vanilla/GCSC/PROSER compared with MLS as the common score, plus a PROSER row using its
-   placeholder-based detection score. PROSER's CSA must use only the 10 known-class logits.
+Produces:
+1. `task4/results/table1_vanilla_posthoc_scores.json` -- MSP/MLS/Energy/Mahalanobis on the
+   frozen Vanilla model: near/far/all AUROC + validation-calibrated (95th percentile)
+   rejection.
+2. `task4/results/table2_model_comparison_mls.json` -- Vanilla/GCSC[/PROSER] compared with
+   MLS as the common score (CSA + near/far AUROC + rejection). Only includes methods whose
+   cache files already exist, so it runs fine before PROSER is implemented.
+3. `report/figures/task4_score_distributions.png` -- MSP/MLS/Mahalanobis score histograms
+   (known-test vs. near vs. far), the required compact multi-panel figure.
+4. `task4/results/failure_cases.json` -- incorrectly-accepted near/far examples under the
+   Vanilla MLS threshold (unknown class, predicted class, score, threshold).
 
-Also produces the required score-distribution/ROC figure (MSP, MLS, Mahalanobis) and pulls
->=3 near-unknown and >=3 far-unknown incorrectly-accepted examples via
-`task4.evaluation.failure_analysis.find_incorrect_acceptances` under the Vanilla MLS threshold.
-
-TODO (Task 4, Day 5, after `extract_outputs.py` has cached features/logits for every method):
-load the cached tensors, apply each score in `task4/scores/`, call `evaluate_score` per
-(model, score, unknown-group), and write `task4/results/summary.json` + figures under
-`report/figures/` for the report.
+TODO once PROSER exists: add its cache to `--methods` for table 2, and add a second PROSER
+row using its placeholder-based detection score (not MLS) per the assignment -- that row
+needs PROSER-specific logic (dummy-classifier outputs) not covered by `build_table2` below.
 """
 
+import argparse
+import json
+import os
+from typing import Dict, List, Sequence
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from torchvision.datasets import CIFAR10
+
+from common.metrics import accuracy
+from common.plotting import apply_style, save_figure
+from task4.data.cifar100_unknowns import CIFAR100UnknownSubset
+from task4.evaluation.failure_analysis import find_incorrect_acceptances
+from task4.evaluation.thresholds import evaluate_score
+from task4.scores.energy import energy_score
+from task4.scores.mahalanobis import fit_class_gaussians, mahalanobis_score
+from task4.scores.mls import mls_score
+from task4.scores.msp import msp_score
+
+
+def load_cache(cache_dir: str, method_name: str, split_name: str) -> Dict[str, torch.Tensor]:
+    return torch.load(os.path.join(cache_dir, f"{method_name}_{split_name}.pt"))
+
+
+def build_table1(cache_dir: str, method_name: str = "vanilla") -> List[Dict]:
+    train = load_cache(cache_dir, method_name, "train")
+    val = load_cache(cache_dir, method_name, "val")
+    test = load_cache(cache_dir, method_name, "test")
+    near = load_cache(cache_dir, method_name, "near")
+    far = load_cache(cache_dir, method_name, "far")
+
+    means, diag_var = fit_class_gaussians(train["features"].numpy(), train["labels"].numpy())
+
+    score_fns = {
+        "MSP": lambda c: msp_score(c["logits"].numpy()),
+        "MLS": lambda c: mls_score(c["logits"].numpy()),
+        "Energy": lambda c: energy_score(c["logits"].numpy()),
+        "Mahalanobis": lambda c: mahalanobis_score(c["features"].numpy(), means, diag_var),
+    }
+
+    rows = []
+    for name, fn in score_fns.items():
+        row = {
+            "score": name,
+            **evaluate_score(fn(val), fn(test), fn(near), fn(far)),
+        }
+        rows.append(row)
+    return rows
+
+
+def build_table2(cache_dir: str, methods: Sequence[str]) -> List[Dict]:
+    rows = []
+    for method in methods:
+        val = load_cache(cache_dir, method, "val")
+        test = load_cache(cache_dir, method, "test")
+        near = load_cache(cache_dir, method, "near")
+        far = load_cache(cache_dir, method, "far")
+
+        csa = accuracy(test["labels"].numpy(), test["logits"].argmax(dim=1).numpy())
+        row = {
+            "method": method,
+            "score": "MLS",
+            "csa": csa,
+            **evaluate_score(
+                mls_score(val["logits"].numpy()),
+                mls_score(test["logits"].numpy()),
+                mls_score(near["logits"].numpy()),
+                mls_score(far["logits"].numpy()),
+            ),
+        }
+        rows.append(row)
+    return rows
+
+
+def plot_score_distributions(cache_dir: str, method_name: str, save_path: str) -> None:
+    train = load_cache(cache_dir, method_name, "train")
+    test = load_cache(cache_dir, method_name, "test")
+    near = load_cache(cache_dir, method_name, "near")
+    far = load_cache(cache_dir, method_name, "far")
+    means, diag_var = fit_class_gaussians(train["features"].numpy(), train["labels"].numpy())
+
+    panels = {
+        "MSP": (msp_score(test["logits"].numpy()), msp_score(near["logits"].numpy()), msp_score(far["logits"].numpy())),
+        "MLS": (mls_score(test["logits"].numpy()), mls_score(near["logits"].numpy()), mls_score(far["logits"].numpy())),
+        "Mahalanobis": (
+            mahalanobis_score(test["features"].numpy(), means, diag_var),
+            mahalanobis_score(near["features"].numpy(), means, diag_var),
+            mahalanobis_score(far["features"].numpy(), means, diag_var),
+        ),
+    }
+
+    apply_style()
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+    for ax, (name, (known, near_scores, far_scores)) in zip(axes, panels.items()):
+        ax.hist(known, bins=40, alpha=0.5, density=True, label="known (test)")
+        ax.hist(near_scores, bins=40, alpha=0.5, density=True, label="near unknown")
+        ax.hist(far_scores, bins=40, alpha=0.5, density=True, label="far unknown")
+        ax.set_title(f"{method_name}: {name}")
+        ax.legend(fontsize=8)
+    save_figure(fig, save_path)
+    print(f"saved {save_path}")
+
+
+def build_failure_cases(cache_dir: str, data_root: str, table1_rows: List[Dict], k: int = 3) -> Dict[str, List[Dict]]:
+    threshold = next(r for r in table1_rows if r["score"] == "MLS")["threshold_tau"]
+    cifar10_classes = CIFAR10(root=data_root, train=False, download=True).classes
+
+    result = {}
+    for group in ("near", "far"):
+        cache = load_cache(cache_dir, "vanilla", group)
+        dataset = CIFAR100UnknownSubset(data_root, group=group)
+        scores = mls_score(cache["logits"].numpy())
+        predicted_names = [cifar10_classes[p] for p in cache["logits"].argmax(dim=1).numpy()]
+        unknown_names = [dataset.class_names[label] for label in dataset.original_labels]
+
+        cases = find_incorrect_acceptances(scores, threshold, unknown_names, predicted_names)
+        result[group] = cases[:k] if len(cases) > k else cases
+        print(f"{group}: {len(cases)} incorrectly accepted (showing up to {k})")
+    return result
+
+
+def main(data_root: str, cache_dir: str) -> None:
+    os.makedirs("task4/results", exist_ok=True)
+
+    table1 = build_table1(cache_dir, "vanilla")
+    with open("task4/results/table1_vanilla_posthoc_scores.json", "w") as f:
+        json.dump(table1, f, indent=2)
+    print("\nTable 1 -- Vanilla, post-hoc scores:")
+    for row in table1:
+        print(row)
+
+    available_methods = [m for m in ("vanilla", "gcsc", "proser") if os.path.exists(os.path.join(cache_dir, f"{m}_test.pt"))]
+    table2 = build_table2(cache_dir, available_methods)
+    with open("task4/results/table2_model_comparison_mls.json", "w") as f:
+        json.dump(table2, f, indent=2)
+    print("\nTable 2 -- model comparison (MLS):")
+    for row in table2:
+        print(row)
+    if "proser" not in available_methods:
+        print("\n(PROSER not yet cached -- table 2 will regenerate with its row, plus a separate\n"
+              " placeholder-score row, once task4/methods/proser.py is implemented and cached.)")
+
+    plot_score_distributions(cache_dir, "vanilla", "report/figures/task4_score_distributions.png")
+
+    failures = build_failure_cases(cache_dir, data_root, table1)
+    with open("task4/results/failure_cases.json", "w") as f:
+        json.dump(failures, f, indent=2)
+
+
 if __name__ == "__main__":
-    raise NotImplementedError("Fill in per the module docstring once cached outputs exist.")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data-root", required=True)
+    parser.add_argument("--cache-dir", default="task4/cache")
+    args = parser.parse_args()
+    main(args.data_root, args.cache_dir)

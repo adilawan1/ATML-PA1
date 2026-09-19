@@ -28,6 +28,13 @@ class CIFAR100UnknownSubset(Dataset):
         self.samples = [(img, target) for img, target in zip(base.data, base.targets) if target in wanted_idx]
         self.transform = transform
 
+        # Kept for failure analysis (Step 6): __getitem__ returns -1 (not a valid CIFAR-10
+        # label) since that's what a model consumes, but recovering which fine class was
+        # accepted requires the original CIFAR-100 label, aligned index-for-index with
+        # DataLoader(..., shuffle=False) iteration order.
+        self.class_names = base.classes
+        self.original_labels = [target for _, target in self.samples]
+
     def __len__(self) -> int:
         return len(self.samples)
 

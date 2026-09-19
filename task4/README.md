@@ -13,7 +13,13 @@
 - [ ] `methods/proser.py` -- architecture pieces in place; classifier/data-placeholder losses
       and the placeholder detection score are TODO (read Zhou et al. 2021 closely first).
 - [ ] `methods/rpl.py` -- optional, deferred.
-- [ ] `extract_outputs.py`, `evaluate_osr.py` -- TODO once checkpoints exist.
+- [x] `extract_outputs.py` -- caches penultimate features + logits (unaugmented) for
+      CIFAR-10 train/val/test and both CIFAR-100 unknown groups, per checkpoint.
+- [x] `evaluate_osr.py` -- builds both required tables (post-hoc scores on Vanilla;
+      Vanilla/GCSC[/PROSER] via MLS), the 3-panel score-distribution figure, and the
+      incorrectly-accepted near/far failure cases. Table 2 and the figure/analysis
+      auto-extend once a `proser_*.pt` cache exists; a second PROSER row using its
+      placeholder score still needs writing once PROSER itself is implemented.
 
 ## Commands
 
@@ -25,8 +31,10 @@ python -m task4.train --config task4/configs/gcsc.yaml    --data-root /path/to/c
 # PROSER once implemented:
 python -m task4.train --config task4/configs/proser.yaml  --data-root /path/to/cifar_root
 
-python -m task4.extract_outputs
-python -m task4.evaluate_osr
+python -m task4.extract_outputs --checkpoint task4/results/vanilla/checkpoint.pt --data-root /path/to/cifar_root --method-name vanilla
+python -m task4.extract_outputs --checkpoint task4/results/gcsc/checkpoint.pt    --data-root /path/to/cifar_root --method-name gcsc
+
+python -m task4.evaluate_osr --data-root /path/to/cifar_root
 ```
 
 ## Hard constraint
