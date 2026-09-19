@@ -1,0 +1,31 @@
+seed: 6304
+method: dan_dg
+data:
+  pacs_root: null
+  protocol_path: shared/splits/pacs_sketch_seed6304.json # only source domains read during training
+  image_size: 256
+  crop_size: 224
+model:
+  backbone: resnet18
+  pretrained_weights: IMAGENET1K_V1
+  num_classes: 7
+batchnorm:
+  freeze_running_stats: true
+train:
+  optimizer: adamw
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  max_epochs: 30
+  patience: 5
+  batch_per_source_domain: 8
+loss:
+  lambda_dg: 1.0
+  kernel_bandwidth_multipliers: [0.5, 1.0, 2.0]
+checkpoint_selection: mean_source_val_macro_f1
+output:
+  checkpoint: task3/results/dan_dg/checkpoint.pt
+  metrics: task3/results/dan_dg/metrics.jsonl
+
+# Controlled design study (Task 3, Step 5) -- main comparison above must keep loss.lambda_dg == 1.0.
+controlled_study:
+  lambda_dg_values: [0.1, 1.0, 10.0]

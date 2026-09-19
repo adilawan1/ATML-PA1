@@ -1,0 +1,21 @@
+# Optional extension (Task 4, Step 5) -- implement only if time remains after Vanilla, GCSC,
+# and PROSER are complete and evaluated. Train on CIFAR-10 only; no CIFAR-100 access.
+seed: 6304
+method: rpl
+data:
+  split_path: task4/data/cifar10_split_seed6304.json
+model:
+  arch: resnet18_cifar
+  num_classes: 10
+train:
+  optimizer: sgd
+  lr: 0.1
+  momentum: 0.9
+  weight_decay: 5.0e-4
+  schedule: cosine
+  batch_size: 128
+  epochs: 100
+checkpoint_selection: cifar10_val_accuracy
+output:
+  checkpoint: task4/results/rpl/checkpoint.pt
+  metrics: task4/results/rpl/metrics.jsonl

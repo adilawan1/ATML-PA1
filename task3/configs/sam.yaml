@@ -1,0 +1,30 @@
+seed: 6304
+method: sam
+data:
+  pacs_root: null
+  protocol_path: shared/splits/pacs_sketch_seed6304.json # only source domains read during training
+  image_size: 256
+  crop_size: 224
+model:
+  backbone: resnet18
+  pretrained_weights: IMAGENET1K_V1
+  num_classes: 7
+batchnorm:
+  freeze_running_stats: true
+train:
+  optimizer: adamw
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  max_epochs: 30
+  patience: 5
+  batch_per_source_domain: 8
+sam:
+  rho: 0.05
+checkpoint_selection: mean_source_val_macro_f1
+output:
+  checkpoint: task3/results/sam/checkpoint.pt
+  metrics: task3/results/sam/metrics.jsonl
+
+# Controlled design study (Task 3, Step 5) -- main comparison above must keep sam.rho == 0.05.
+controlled_study:
+  rho_values: [0.01, 0.05, 0.1]

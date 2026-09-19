@@ -1,0 +1,32 @@
+seed: 6304
+method: proser
+init_from: task4/results/vanilla/checkpoint.pt
+data:
+  split_path: task4/data/cifar10_split_seed6304.json
+model:
+  arch: resnet18_cifar
+  num_classes: 10
+  num_dummy_classifiers: 5
+augmentation:
+  random_crop_padding: 4
+  horizontal_flip: true
+train:
+  optimizer: sgd
+  lr: 1.0e-3
+  momentum: 0.9
+  weight_decay: 5.0e-4
+  schedule: cosine
+  batch_size: 128
+  epochs: 50
+mixup:
+  split_point: after_layer2
+  beta_alpha: 2.0
+  beta_beta: 2.0
+loss:
+  beta_classifier_placeholder: 1.0
+  gamma_data_placeholder: 0.1
+checkpoint_selection: cifar10_val_accuracy
+eval_scores: [mls, placeholder]
+output:
+  checkpoint: task4/results/proser/checkpoint.pt
+  metrics: task4/results/proser/metrics.jsonl

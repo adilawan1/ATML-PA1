@@ -1,0 +1,29 @@
+# datasets and large artifacts (keep these on Drive/local disk, not in git)
+data/
+datasets/
+*.pth
+*.pt
+*.ckpt
+checkpoints/
+wandb/
+
+# caches (features/logits) -- keep the folder, ignore contents
+task4/cache/*
+!task4/cache/.gitkeep
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# notebooks
+.ipynb_checkpoints/
+
+# os
+.DS_Store
+Thumbs.db
+
+# logs
+*.log

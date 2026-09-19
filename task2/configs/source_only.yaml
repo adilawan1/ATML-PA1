@@ -1,0 +1,24 @@
+seed: 6304
+method: source_only
+data:
+  pacs_root: null
+  protocol_path: shared/splits/pacs_sketch_seed6304.json
+  image_size: 256
+  crop_size: 224
+model:
+  backbone: resnet18
+  pretrained_weights: IMAGENET1K_V1
+  num_classes: 7
+batchnorm:
+  freeze_running_stats: true
+train:
+  optimizer: adamw
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  max_epochs: 30
+  patience: 5
+  batch_per_source_domain: 8
+checkpoint_selection: mean_source_val_macro_f1
+output:
+  checkpoint: task2/results/source_only/checkpoint.pt
+  metrics: task2/results/source_only/metrics.jsonl

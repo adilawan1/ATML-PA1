@@ -1,0 +1,17 @@
+seed: 6304
+dataset: stl10
+data:
+  root: null
+  eval_subset_path: task1/data/eval_subset_seed6304.json
+  eval_subset_size: 500
+split:
+  train_val_ratio: 0.8
+  seed: 6304
+train:
+  optimizer: adamw
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  max_epochs: 50
+  patience: 5
+backbones: [resnet50, vit_b_16, clip_vitb32]
+zero_shot_prompt: "a photo of a {class}."

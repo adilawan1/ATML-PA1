@@ -1,0 +1,35 @@
+seed: 6304
+method: cdan
+data:
+  pacs_root: null
+  protocol_path: shared/splits/pacs_sketch_seed6304.json
+  image_size: 256
+  crop_size: 224
+model:
+  backbone: resnet18
+  pretrained_weights: IMAGENET1K_V1
+  num_classes: 7
+batchnorm:
+  freeze_running_stats: true
+train:
+  optimizer: adamw
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  max_epochs: 30
+  patience: 5
+  batch_per_source_domain: 8
+  batch_target: 24
+discriminator:
+  hidden_dim: 256
+  dropout: 0.5
+  input_dim: 3584 # 512 (feature_dim) * 7 (num_classes), see task2/methods/cdan.py
+grl_schedule:
+  gamma: 10.0
+loss:
+  domain_loss_weight: 1.0
+  entropy_conditioning: false
+  detach_features: false
+checkpoint_selection: mean_source_val_macro_f1
+output:
+  checkpoint: task2/results/cdan/checkpoint.pt
+  metrics: task2/results/cdan/metrics.jsonl

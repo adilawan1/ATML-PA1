@@ -1,0 +1,26 @@
+seed: 6304
+method: gcsc
+data:
+  split_path: task4/data/cifar10_split_seed6304.json
+model:
+  arch: resnet18_cifar
+  num_classes: 10
+augmentation:
+  random_crop_padding: 4
+  horizontal_flip: true
+  randaugment:
+    num_ops: 2
+    magnitude: 9
+train:
+  optimizer: sgd
+  lr: 0.1
+  momentum: 0.9
+  weight_decay: 5.0e-4
+  schedule: cosine
+  batch_size: 128
+  epochs: 100
+checkpoint_selection: cifar10_val_accuracy
+eval_score: mls
+output:
+  checkpoint: task4/results/gcsc/checkpoint.pt
+  metrics: task4/results/gcsc/metrics.jsonl

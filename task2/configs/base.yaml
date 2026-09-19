@@ -1,0 +1,25 @@
+# Shared fields duplicated into each method config below (kept self-contained rather than
+# using YAML anchors across files, per the project's no-premature-abstraction preference).
+# This file documents the common protocol; it is not loaded directly by train.py.
+seed: 6304
+data:
+  pacs_root: null # set to your local PACS path, or pass via CLI override
+  protocol_path: shared/splits/pacs_sketch_seed6304.json
+  image_size: 256
+  crop_size: 224
+model:
+  backbone: resnet18
+  pretrained_weights: IMAGENET1K_V1
+  num_classes: 7
+  feature_dim: 512
+batchnorm:
+  freeze_running_stats: true
+train:
+  optimizer: adamw
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  max_epochs: 30
+  patience: 5
+  batch_per_source_domain: 8
+  batch_target: 24
+checkpoint_selection: mean_source_val_macro_f1

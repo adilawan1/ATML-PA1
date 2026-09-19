@@ -1,0 +1,4 @@
+seed: 6304
+method: erm
+reuse_checkpoint: task2/results/source_only/checkpoint.pt
+note: "ERM baseline is the Task 2 Source-only checkpoint reused unchanged; never retrain here."
