@@ -1,6 +1,7 @@
 # datasets and large artifacts (keep these on Drive/local disk, not in git)
-data/
-datasets/
+# anchored to repo root so this doesn't also match task1/data or task4/data (code packages)
+/data/
+/datasets/
 *.pth
 *.pt
 *.ckpt
