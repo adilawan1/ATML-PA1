@@ -7,8 +7,10 @@ each with a trained linear head, plus zero-shot CLIP ("a photo of a {class}."). 
 ## Status
 - [x] Clean baseline, color bias (grayscale + 180-degree hue rotation), translation curve,
       patch shuffle, cosine representation stability, t-SNE grid -- `scripts/run_task1.py`.
-- [ ] Shape vs. texture cue conflicts (Step 3) -- `data/make_cue_conflicts.py`,
-      `scripts/run_cue_conflicts.py` (AdaIN).
+- [x] Shape vs. texture cue conflicts (Step 3): `data/adain.py` (public pytorch-AdaIN wrapper),
+      `data/make_cue_conflicts.py` (generation + pre-registered rejection rule; loads no
+      classifier), `scripts/run_cue_conflicts.py` (evaluation, shape bias / coverage, examples).
+      Settings to choose and freeze *before* generating: `alpha`, class pairs, rule thresholds.
 - [ ] Hypotheses written in `hypotheses.md` before each result is interpreted (yours to write).
 
 ## Layout
@@ -27,11 +29,20 @@ each with a trained linear head, plus zero-shot CLIP ("a photo of a {class}."). 
 ## Commands
 
 ```bash
-python -m task1.scripts.run_task1 --data-root /path/to/data     # writes results/ and report/figures/
+python -m task1.scripts.run_task1 --data-root /path/to/data     # Steps 1, 2, 4, 5, 6
+
+# Step 3 -- in this order (see the make_cue_conflicts docstring for the rejection rule):
+python -m task1.data.make_cue_conflicts --data-root /path/to/data --preview   # calibrate alpha/thresholds by eye
+#   ... set cue_conflicts.{alpha,pairs,rejection_rule} in configs/task1.yaml and freeze them ...
+python -m task1.data.make_cue_conflicts --data-root /path/to/data             # generate the accepted set
+python -m task1.scripts.run_cue_conflicts --data-root /path/to/data           # evaluate all predictors
 ```
 
 Outputs: `results/task1_results.json` (every number in the report), `results/compact_comparison.csv`,
-`report/figures/task1_translation_curve.png`, `report/figures/task1_tsne.png`.
+`report/figures/task1_translation_curve.png`, `report/figures/task1_tsne.png`; for Step 3
+`results/cue_conflicts_meta.json` (rule, per-cell accepted/rejected counts, every kept and rejected item),
+`results/cue_conflicts.json` + `cue_conflicts_summary.csv` (decision counts, shape bias, coverage), and
+the accepted/rejected/examples/t-SNE figures.
 
 ## Notes for interpreting results
 - The linear head is trained on raw frozen features (no standardization, as specified). CLIP's

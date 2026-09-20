@@ -27,14 +27,14 @@ from common.seed import set_seed
 from task1.analysis.evaluator import (
     BACKBONES,
     PREDICTORS,
-    Evaluator,
     average_over_conditions,
     condition_metrics,
     feature_stability,
 )
 from task1.analysis.representation import draw_projection, fit_tsne, legend_handles
+from task1.analysis.setup import load_stack
 from task1.data.make_subset import build_eval_subset, load_eval_subset
-from task1.data.stl10 import load_common_tensors, load_stl10, stratified_train_val_indices
+from task1.data.stl10 import load_common_tensors
 from task1.data.transforms import (
     CARDINAL_DIRECTIONS,
     grayscale,
@@ -43,48 +43,6 @@ from task1.data.transforms import (
     patch_shuffle_generator,
     translate,
 )
-from task1.models.backbones import (
-    build_clip_vitb32,
-    build_resnet50,
-    build_vit_b16,
-    clip_text_features,
-    extract_features,
-)
-from task1.models.heads import train_linear_head
-
-
-def build_backbones(device: str):
-    resnet = build_resnet50().to(device)
-    vit = build_vit_b16().to(device)
-    clip, tokenizer = build_clip_vitb32()
-    clip.to(device)
-    return {"resnet50": resnet, "vit_b_16": vit, "clip_vitb32": clip}, tokenizer
-
-
-def cached_train_val_features(train_set, backbones, cfg, cache_path: str) -> Dict:
-    """Frozen features for the stratified 80/20 train/val split of the official train partition,
-    extracted in chunks (5000 images at 224x224 would be ~3 GB as one tensor)."""
-    if os.path.exists(cache_path):
-        print(f"loading cached train/val features from {cache_path}")
-        return torch.load(cache_path)
-
-    train_idx, val_idx = stratified_train_val_indices(train_set, cfg["split"]["val_fraction"], cfg["split"]["seed"])
-    labels = np.asarray(train_set.labels)
-    result = {"train_labels": torch.tensor(labels[train_idx]), "val_labels": torch.tensor(labels[val_idx])}
-
-    for split_name, indices in [("train", train_idx), ("val", val_idx)]:
-        per_backbone = {name: [] for name in backbones}
-        chunk = 250
-        for start in range(0, len(indices), chunk):
-            images = load_common_tensors(train_set, indices[start : start + chunk])
-            for name, bb in backbones.items():
-                per_backbone[name].append(extract_features(bb, images, cfg["inference_batch_size"]))
-            print(f"  {split_name}: {min(start + chunk, len(indices))}/{len(indices)}")
-        result[split_name] = {name: torch.cat(chunks) for name, chunks in per_backbone.items()}
-
-    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
-    torch.save(result, cache_path)
-    return result
 
 
 def plot_translation_curve(translation: Dict, deltas, path: str) -> None:
@@ -141,34 +99,15 @@ def main(args) -> None:
     os.makedirs(args.out_dir, exist_ok=True)
     os.makedirs(args.fig_dir, exist_ok=True)
 
-    train_set = load_stl10(args.data_root, "train")
-    test_set = load_stl10(args.data_root, "test")
-    class_names = list(train_set.classes)
-
     subset_path = cfg["eval_subset"]["path"]
     if not os.path.exists(subset_path):
         build_eval_subset(args.data_root, subset_path, cfg["eval_subset"]["size"])
     subset = load_eval_subset(subset_path)
     eval_indices, eval_labels = subset["indices"], np.asarray(subset["labels"])
 
-    backbones, tokenizer = build_backbones(args.device)
-    text_features = clip_text_features(backbones["clip_vitb32"], tokenizer, class_names, cfg["zero_shot_prompt"])
+    stack = load_stack(args.data_root, cfg, args.cache_dir, args.device)
+    test_set, class_names, evaluator, head_info = stack.test_set, stack.class_names, stack.evaluator, stack.head_info
 
-    features = cached_train_val_features(train_set, backbones, cfg, os.path.join(args.cache_dir, "stl10_train_val_features.pt"))
-    heads, head_info = {}, {}
-    for name in BACKBONES:
-        heads[name], head_info[name] = train_linear_head(
-            features["train"][name],
-            features["train_labels"],
-            features["val"][name],
-            features["val_labels"],
-            num_classes=len(class_names),
-            seed=cfg["seed"],
-            **{k: cfg["linear_head"][k] for k in ("lr", "weight_decay", "max_epochs", "patience", "batch_size")},
-        )
-        print(f"head {name}: {head_info[name]}")
-
-    evaluator = Evaluator(backbones, heads, text_features, cfg["inference_batch_size"])
     clean_images = load_common_tensors(test_set, eval_indices)
     clean_out = evaluator.run(clean_images)
 

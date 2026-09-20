@@ -26,3 +26,17 @@ representation:
   seed: 6304
   translation_delta: 32
   translation_direction: right
+cue_conflicts:
+  # Unordered class pairs (each used in both directions). Design choice: every class appears once,
+  # four animal/vehicle pairs plus monkey/bird, so shape and texture cues come from clearly
+  # different kinds of objects. Change freely -- but before generating, not after seeing results.
+  pairs: [[cat, car], [dog, truck], [horse, ship], [deer, airplane], [monkey, bird]]
+  alpha: 0.75 # AdaIN stylization strength in [0, 1]; choose from the --preview sheet
+  candidates_per_cell: 40
+  keep_per_cell: 25 # 10 cells x 25 = 250 kept (>= 200 required)
+  seed: 6304
+  preview_alphas: [0.5, 0.75, 1.0]
+  rejection_rule: # image statistics only; calibrate on the preview sheet, then freeze
+    min_structure_corr: 0.5
+    min_style_shift: 0.5
+    min_style_gap: 0.05
