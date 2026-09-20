@@ -33,9 +33,10 @@ pip install -r requirements.txt
 Datasets (not committed; see `.gitignore`):
 - **STL-10** / **CIFAR-10** / **CIFAR-100**: fetched automatically via `torchvision.datasets`
   into whatever `--data-root` you pass.
-- **PACS**: not distributed by torchvision. Download a PACS mirror (e.g. via Kaggle or the
-  DomainBed benchmark) so the layout is `<pacs_root>/<domain>/<class>/<image>`, with domains
-  `photo`, `art_painting`, `cartoon`, `sketch` and the 7 standard PACS classes.
+- **PACS**: not distributed by torchvision. `python -m shared.prepare_pacs --out <pacs_root> --parquet <cache.parquet>`
+  downloads the Hugging Face copy of the standard release (`flwrlabs/pacs`, 9,991 images) and writes the
+  layout `<pacs_root>/<domain>/<class>/<image>` (domains `photo`, `art_painting`, `cartoon`, `sketch`; 7 classes);
+  `python -m shared.verify_pacs --root <pacs_root>` checks the per-domain counts.
 
 ## Reproducing each task
 
@@ -76,8 +77,9 @@ runtime into the git-ignored `third_party/`):
   short `style_transfer` routine from its `test.py` so it can run on batches.
 - **Pretrained backbones**: torchvision ResNet-50 (`IMAGENET1K_V2`), ViT-B/16 (`IMAGENET1K_V1`),
   ResNet-18 (`IMAGENET1K_V1`); OpenCLIP ViT-B-32 (`pretrained='openai'`).
-- **PACS** is obtained via the download link used by the
-  [DomainBed](https://github.com/facebookresearch/DomainBed) benchmark scripts (original data:
-  Li et al., "Deeper, Broader and Artier Domain Generalization", ICCV 2017).
+- **PACS**: the Hugging Face copy [`flwrlabs/pacs`](https://huggingface.co/datasets/flwrlabs/pacs) of the standard
+  release (per-domain and per-class counts verified against the published statistics: 1670 / 2048 / 2344 / 3929
+  images); original data: Li et al., "Deeper, Broader and Artier Domain Generalization", ICCV 2017.
+  (The Google Drive link used by DomainBed's download script was refused by `gdown` with a quota error.)
 - The Task 3 `SAMOptimizer` follows the standard public two-step SAM pattern (Foret et al., 2021;
   cf. the widely used davda54/sam implementation); Task 4 PROSER follows Zhou et al. (2021).

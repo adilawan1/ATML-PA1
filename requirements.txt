@@ -10,3 +10,4 @@ umap-learn
 Pillow
 PyYAML
 tqdm
+pyarrow
