@@ -8,8 +8,8 @@ from __future__ import annotations
     t-SNE analysis (global-avg-pooled ResNet feature, final ViT class token, or the
     L2-normalized CLIP image embedding).
 
-All three backbones are frozen (`requires_grad_(False)`, `eval()`); only a separate linear
-head (`task2.models.classifier_head.LinearHead`, reused here) is trained per backbone.
+All three backbones are frozen (`requires_grad_(False)`, `eval()`); a separate linear head
+(`task1/models/heads.py`) is trained per backbone on cached features.
 """
 
 from dataclasses import dataclass
@@ -29,10 +29,23 @@ class FrozenBackbone:
     normalize: Callable
     feature_dim: int
     features_fn: Callable[[nn.Module, torch.Tensor], torch.Tensor]
+    device: str = "cpu"
 
+    def to(self, device: str) -> "FrozenBackbone":
+        self.model.to(device)
+        self.device = device
+        return self
+
+    @torch.no_grad()
     def features(self, x: torch.Tensor) -> torch.Tensor:
-        with torch.no_grad():
-            return self.features_fn(self.model, self.normalize(x))
+        """`x`: (B, 3, 224, 224) un-normalized tensor in [0, 1]. Returns (B, feature_dim) on CPU."""
+        x = self.normalize(x.to(self.device))
+        return self.features_fn(self.model, x).float().cpu()
+
+
+def extract_features(backbone: FrozenBackbone, images: torch.Tensor, batch_size: int = 100) -> torch.Tensor:
+    chunks = [backbone.features(images[i : i + batch_size]) for i in range(0, len(images), batch_size)]
+    return torch.cat(chunks)
 
 
 def _resnet50_features(model: nn.Module, x: torch.Tensor) -> torch.Tensor:
@@ -81,9 +94,7 @@ def _clip_image_features(model: nn.Module, x: torch.Tensor) -> torch.Tensor:
 
 
 def build_clip_vitb32():
-    """Returns (FrozenBackbone, tokenizer). Zero-shot text embeddings use the same model via
-    `model.encode_text(tokenizer(prompts))`, L2-normalized the same way as the image embedding.
-    """
+    """Returns (FrozenBackbone, tokenizer) for OpenCLIP ViT-B-32 (pretrained='openai')."""
     model, _, preprocess = open_clip.create_model_and_transforms("ViT-B-32", pretrained="openai")
     model.eval().requires_grad_(False)
     tokenizer = open_clip.get_tokenizer("ViT-B-32")
@@ -97,13 +108,15 @@ def build_clip_vitb32():
     return backbone, tokenizer
 
 
-def clip_zero_shot_logits(backbone: FrozenBackbone, tokenizer, images: torch.Tensor, class_names: List[str]) -> torch.Tensor:
-    """Scaled image-text cosine similarities for the fixed prompt "a photo of a {class}."."""
-    prompts = [f"a photo of a {name}." for name in class_names]
-    with torch.no_grad():
-        text_tokens = tokenizer(prompts)
-        text_features = backbone.model.encode_text(text_tokens)
-        text_features = text_features / text_features.norm(dim=-1, keepdim=True)
-        image_features = backbone.features(images)
-        logit_scale = backbone.model.logit_scale.exp()
-        return logit_scale * image_features @ text_features.t()
+@torch.no_grad()
+def clip_text_features(backbone: FrozenBackbone, tokenizer, class_names: List[str], template: str = "a photo of a {}.") -> torch.Tensor:
+    """L2-normalized text embeddings for the fixed zero-shot prompt (no prompt search)."""
+    tokens = tokenizer([template.format(name) for name in class_names]).to(backbone.device)
+    text = backbone.model.encode_text(tokens)
+    return (text / text.norm(dim=-1, keepdim=True)).float().cpu()
+
+
+def clip_zero_shot_logits(backbone: FrozenBackbone, image_features: torch.Tensor, text_features: torch.Tensor) -> torch.Tensor:
+    """Scaled image-text cosine similarities; softmax over these gives zero-shot confidence."""
+    scale = backbone.model.logit_scale.exp().item()
+    return scale * image_features @ text_features.t()

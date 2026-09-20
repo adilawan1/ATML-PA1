@@ -1,0 +1,28 @@
+seed: 6304
+dataset: stl10
+eval_subset:
+  path: task1/data/eval_subset_seed6304.json
+  size: 500
+split:
+  val_fraction: 0.2
+  seed: 6304
+linear_head:
+  optimizer: adamw
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  max_epochs: 50
+  patience: 5
+  batch_size: 128
+zero_shot_prompt: "a photo of a {}."
+inference_batch_size: 100
+interventions:
+  hue_shift: 0.5 # fraction of the color wheel; 0.5 = 180 degree rotation (max)
+  translation_pixels: [0, 8, 16, 32]
+  patch_grid: 4
+  patch_shuffle_seed: 6304
+representation:
+  method: tsne
+  perplexity: 30
+  seed: 6304
+  translation_delta: 32
+  translation_direction: right

@@ -11,13 +11,14 @@
 ## Commands
 
 ```bash
-# one-time, shared with Task 3
+# one-time, shared with Task 3 (verify_pacs checks layout + image counts first)
+python -m shared.verify_pacs --root /path/to/pacs
 python -m shared.pacs_protocol --root /path/to/pacs
 
-python -m task2.train --config task2/configs/source_only.yaml
-python -m task2.train --config task2/configs/dan.yaml
-python -m task2.train --config task2/configs/dann.yaml
-python -m task2.train --config task2/configs/cdan.yaml
+python -m task2.train --config task2/configs/source_only.yaml --pacs-root /path/to/pacs
+python -m task2.train --config task2/configs/dan.yaml  --pacs-root /path/to/pacs
+python -m task2.train --config task2/configs/dann.yaml --pacs-root /path/to/pacs
+python -m task2.train --config task2/configs/cdan.yaml --pacs-root /path/to/pacs
 
 python -m task2.evaluate_final
 ```

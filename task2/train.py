@@ -19,6 +19,7 @@ METHOD_TRAINERS = {
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train one Task 2 UDA method from a config file.")
     parser.add_argument("--config", required=True)
+    parser.add_argument("--pacs-root", default=None, help="Overrides data.pacs_root from the config")
     args = parser.parse_args()
 
     with open(args.config) as f:
@@ -31,8 +32,13 @@ def main() -> None:
     if method not in METHOD_TRAINERS:
         raise NotImplementedError(f"Method '{method}' is not wired into task2/train.py yet.")
 
+    pacs_root = args.pacs_root or config["data"]["pacs_root"]
+    if pacs_root is None:
+        raise ValueError("Pass --pacs-root (or set data.pacs_root in the config).")
+
     train_source_only(
         protocol,
+        pacs_root,
         image_size=config["data"]["image_size"],
         crop_size=config["data"]["crop_size"],
         batch_per_domain=config["train"]["batch_per_source_domain"],

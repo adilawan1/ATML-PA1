@@ -39,6 +39,8 @@ def translate(x: torch.Tensor, dx: int, dy: int) -> torch.Tensor:
     the identity/no-shift case used as the delta=0 point on the consistency/accuracy curve.
     """
     pad = max(abs(dx), abs(dy))
+    if pad == 0:
+        return x
     padded = TF.pad(x, [pad, pad, pad, pad], padding_mode="reflect")
     top = pad - dy
     left = pad - dx

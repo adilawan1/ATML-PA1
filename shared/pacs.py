@@ -52,9 +52,14 @@ def cycle_loader(loader):
             yield batch
 
 
-def list_domain_files(root: str, domain: str) -> List[Tuple[str, int]]:
-    """Return sorted (path, label) pairs for one PACS domain.
+IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png"}
 
+
+def list_domain_files(root: str, domain: str) -> List[Tuple[str, int]]:
+    """Return sorted (relative_path, label) pairs for one PACS domain.
+
+    Paths are relative to `root` (posix style, e.g. "photo/dog/056_0001.jpg") so the saved
+    split file is machine-independent; `PACSDataset` re-joins them with the local root.
     Sorting makes the listing deterministic across OSes/filesystems before any seeded split
     is applied on top of it.
     """
@@ -67,14 +72,18 @@ def list_domain_files(root: str, domain: str) -> List[Tuple[str, int]]:
                 f"Expected class folder {cls_dir}. Check --root points at the PACS directory "
                 f"whose immediate subfolders are {DOMAINS}."
             )
-        for img_path in sorted(cls_dir.glob("*")):
-            items.append((str(img_path), CLASS_TO_IDX[cls]))
+        for img_path in sorted(cls_dir.iterdir()):
+            if img_path.suffix.lower() in IMAGE_SUFFIXES:
+                items.append((img_path.relative_to(root).as_posix(), CLASS_TO_IDX[cls]))
     return items
 
 
 class PACSDataset(Dataset):
-    def __init__(self, samples: List[Tuple[str, int]], transform: Optional[Callable] = None):
+    """`samples` are (path relative to `root`, label) pairs from the shared split protocol."""
+
+    def __init__(self, samples: List[Tuple[str, int]], root: str, transform: Optional[Callable] = None):
         self.samples = samples
+        self.root = root
         self.transform = transform
 
     def __len__(self) -> int:
@@ -82,7 +91,7 @@ class PACSDataset(Dataset):
 
     def __getitem__(self, idx: int):
         path, label = self.samples[idx]
-        image = Image.open(path).convert("RGB")
+        image = Image.open(Path(self.root) / path).convert("RGB")
         if self.transform is not None:
             image = self.transform(image)
         return image, label

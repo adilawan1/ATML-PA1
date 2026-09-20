@@ -24,6 +24,6 @@ def source_domain_separability_score(photo_features, art_features, cartoon_featu
     x_train, x_test, y_train, y_test = train_test_split(
         x, y, test_size=0.3, random_state=SPLIT_SEED, stratify=y
     )
-    clf = LogisticRegression(C=1.0, multi_class="multinomial", max_iter=1000)
+    clf = LogisticRegression(C=1.0, max_iter=1000)  # lbfgs is multinomial for >2 classes by default
     clf.fit(x_train, y_train)
     return float(clf.score(x_test, y_test))

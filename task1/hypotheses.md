@@ -1,0 +1,16 @@
+# Task 1 -- design choices: hypotheses and metrics
+
+The assignment requires a stated hypothesis and an appropriate metric for each of your
+experimental-design choices **before** interpreting the corresponding result. Metrics are
+filled in; the hypotheses are yours to write in your own words. Commit this file before you
+run the experiment it covers, so the git history shows the order.
+
+| Design choice | Setting | Metric(s) | Hypothesis (write before results) |
+|---|---|---|---|
+| Dataset | STL-10 | -- | |
+| Additional color intervention | Hue rotation by 180 degrees (`hue_shift: 0.5` in `configs/task1.yaml`) | accuracy change vs. clean; prediction consistency vs. clean; per-class accuracy | |
+| Translation | 0 / 8 / 16 / 32 px, four cardinal directions, reflection padding | accuracy and prediction consistency vs. displacement | |
+| Patch structure | 4x4 pixel-space grid, one non-identity permutation per image, seed 6304 | accuracy drop; prediction consistency; mean confidence after shuffling | |
+| Cue-conflict class pairs | (fill in once chosen) | shape bias %, coverage %, shape/texture/other counts | |
+| Cue-conflict style strength | (fill in once chosen) | same as above; also visual acceptance rate | |
+| Representation visualization | t-SNE, perplexity 30, seed 6304, PCA init, one joint fit per (backbone, condition) | cosine stability I_T; qualitative cluster mixing between clean and transformed points | |

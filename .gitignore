@@ -11,6 +11,11 @@ wandb/
 # caches (features/logits) -- keep the folder, ignore contents
 task4/cache/*
 !task4/cache/.gitkeep
+task1/cache/*
+!task1/cache/.gitkeep
+
+# third-party code cloned at runtime (see README attribution section)
+third_party/
 
 # python
 __pycache__/

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import Dict, List
 
 import torch
@@ -7,7 +8,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from common.logging import MetricLogger, get_logger
-from common.metrics import macro_f1
+from common.metrics import accuracy, macro_f1
 from shared.pacs import PACSDataset, build_pacs_transforms, cycle_loader
 from task2.models.backbone import build_resnet18_backbone, freeze_batchnorm_stats
 
@@ -15,16 +16,16 @@ SOURCE_DOMAINS = ["photo", "art_painting", "cartoon"]
 
 
 def build_source_loaders(
-    protocol: Dict, image_size: int, crop_size: int, batch_per_domain: int, num_workers: int = 2
+    protocol: Dict, pacs_root: str, image_size: int, crop_size: int, batch_per_domain: int, num_workers: int = 2
 ) -> Dict[str, Dict[str, DataLoader]]:
     """One {"train": loader, "val": loader} pair per source domain, using the shared protocol."""
     loaders: Dict[str, Dict[str, DataLoader]] = {}
     for domain in SOURCE_DOMAINS:
         train_ds = PACSDataset(
-            protocol[domain]["train"], transform=build_pacs_transforms(image_size, crop_size, train=True)
+            protocol[domain]["train"], pacs_root, transform=build_pacs_transforms(image_size, crop_size, train=True)
         )
         val_ds = PACSDataset(
-            protocol[domain]["val"], transform=build_pacs_transforms(image_size, crop_size, train=False)
+            protocol[domain]["val"], pacs_root, transform=build_pacs_transforms(image_size, crop_size, train=False)
         )
         loaders[domain] = {
             "train": DataLoader(
@@ -46,8 +47,6 @@ def evaluate_domain(model: nn.Module, loader: DataLoader, device: str) -> Dict[s
         preds = logits.argmax(dim=1).cpu()
         all_preds.extend(preds.tolist())
         all_labels.extend(labels.tolist())
-    from common.metrics import accuracy
-
     return {"accuracy": accuracy(all_labels, all_preds), "macro_f1": macro_f1(all_labels, all_preds)}
 
 
@@ -58,6 +57,7 @@ def mean_source_macro_f1(model: nn.Module, val_loaders: Dict[str, DataLoader], d
 
 def train_source_only(
     protocol: Dict,
+    pacs_root: str,
     device: str = "cuda",
     image_size: int = 256,
     crop_size: int = 224,
@@ -77,7 +77,7 @@ def train_source_only(
     logger = get_logger("source_only")
     metric_logger = MetricLogger(metrics_path)
 
-    loaders = build_source_loaders(protocol, image_size, crop_size, batch_per_domain)
+    loaders = build_source_loaders(protocol, pacs_root, image_size, crop_size, batch_per_domain)
     train_iters = {d: cycle_loader(loaders[d]["train"]) for d in SOURCE_DOMAINS}
     steps_per_epoch = max(len(loaders[d]["train"]) for d in SOURCE_DOMAINS)
 
@@ -117,8 +117,6 @@ def train_source_only(
         if val_score > best_score:
             best_score = val_score
             epochs_without_improvement = 0
-            import os
-
             os.makedirs(os.path.dirname(checkpoint_path), exist_ok=True)
             torch.save({"model_state": model.state_dict(), "epoch": epoch, "val_score": val_score}, checkpoint_path)
         else:
