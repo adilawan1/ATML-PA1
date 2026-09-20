@@ -48,5 +48,7 @@ the accepted/rejected/examples/t-SNE figures.
 - The linear head is trained on raw frozen features (no standardization, as specified). CLIP's
   unit-norm embeddings give small logits at lr 1e-3, so its head's confidence is low even when
   accuracy is high -- relevant when comparing it with zero-shot CLIP.
+- OpenCLIP is built with `force_quick_gelu=True`: the `openai` weights expect QuickGELU, and open_clip 3.x
+  otherwise builds plain GELU for `ViT-B-32` + `openai` (it prints a mismatch warning).
 - Translation at delta = 0 is the identity, so consistency is exactly 1 there.
 - t-SNE coordinates are only comparable *within* one panel (one joint fit per backbone x condition).

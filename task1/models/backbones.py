@@ -95,7 +95,9 @@ def _clip_image_features(model: nn.Module, x: torch.Tensor) -> torch.Tensor:
 
 def build_clip_vitb32():
     """Returns (FrozenBackbone, tokenizer) for OpenCLIP ViT-B-32 (pretrained='openai')."""
-    model, _, preprocess = open_clip.create_model_and_transforms("ViT-B-32", pretrained="openai")
+    # The OpenAI weights were trained with QuickGELU; recent open_clip builds plain GELU for the
+    # 'ViT-B-32' + 'openai' combination (and warns), which silently degrades the model.
+    model, _, preprocess = open_clip.create_model_and_transforms("ViT-B-32", pretrained="openai", force_quick_gelu=True)
     model.eval().requires_grad_(False)
     tokenizer = open_clip.get_tokenizer("ViT-B-32")
 
