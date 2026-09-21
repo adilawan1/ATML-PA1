@@ -10,7 +10,8 @@ the Task 2 Source-only checkpoint, loaded unchanged. Then, for ERM and every tra
 validation metrics, source-domain separability (3-way Photo/Art/Cartoon logistic regression on balanced
 frozen features, 70/30 split, seed 6304, chance = 33.3%), and the shared-batch local sharpness proxy.
 
-Write your expected effects in `task3/hypotheses.md` and commit it BEFORE launching. Task 2's Sketch
+Write your expected effects in `task3/hypotheses.md` and commit it BEFORE YOU READ THE RESULTS (--blind lets you
+launch now). Task 2's Sketch
 results must not be used to change any Task 3 setting.
 """
 
@@ -26,7 +27,7 @@ from shared.curves import plot_curves
 from shared.eval_utils import predict, source_val_metrics
 from shared.pacs_data import SOURCE_DOMAINS, PACSData
 from shared.pacs_protocol import load_pacs_protocol
-from shared.preregistration import warn_if_unfilled
+from shared.preregistration import blind_log, warn_if_unfilled
 from shared.trainer import load_config, train_run
 from task2.evaluate_final import load_model
 from task3.evaluation.sharpness import fixed_validation_batch, local_sharpness
@@ -71,6 +72,7 @@ def source_diagnostics(model, data: PACSData, device: str, sharp_batch) -> dict:
 def main(args) -> None:
     warn_if_unfilled("task3/hypotheses.md")
     device = args.device
+    blind = getattr(args, "blind", False)
     protocol = load_pacs_protocol(args.protocol)
     data = PACSData(protocol, args.pacs_root, cache_path=args.cache, include_target=False)
     assert not data.include_target
@@ -96,7 +98,7 @@ def main(args) -> None:
                 cfg["train"]["max_epochs"] = args.max_epochs
             print(f"\n=== {name} ===")
             try:
-                summary = train_run(method_cls, cfg, data, device, checkpoint_for(args.ckpt_root, name), os.path.join(out_dir, "metrics.jsonl"))
+                summary = train_run(method_cls, cfg, data, device, checkpoint_for(args.ckpt_root, name), os.path.join(out_dir, "metrics.jsonl"), log=blind_log if blind else print)
                 with open(summary_path, "w") as f:
                     json.dump({**summary, "overrides": overrides}, f, indent=2)
             except Exception:
@@ -109,8 +111,9 @@ def main(args) -> None:
     for name in ["erm"] + trained:
         diagnostics[name] = source_diagnostics(load_model(checkpoint_for(args.ckpt_root, name), device), data, device, sharp_batch)
         d = diagnostics[name]
-        print(f"{name:18s} src F1 mean/worst {d['source_val']['mean_macro_f1']:.4f}/{d['source_val']['worst_macro_f1']:.4f} | "
-              f"source-domain separability {d['source_domain_separability']:.4f} | sharpness {d['sharpness']:.5f}")
+        if not blind:
+            print(f"{name:18s} src F1 mean/worst {d['source_val']['mean_macro_f1']:.4f}/{d['source_val']['worst_macro_f1']:.4f} | "
+                  f"source-domain separability {d['source_domain_separability']:.4f} | sharpness {d['sharpness']:.5f}")
     os.makedirs(RESULTS_DIR, exist_ok=True)
     with open(os.path.join(RESULTS_DIR, "source_diagnostics.json"), "w") as f:
         json.dump(diagnostics, f, indent=2)
@@ -141,4 +144,5 @@ if __name__ == "__main__":
     parser.add_argument("--max-epochs", type=int, default=None, help="debug only (spec: 30)")
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--diagnostics-only", action="store_true")
+    parser.add_argument("--blind", action="store_true", help="hide all result printouts")
     main(parser.parse_args())

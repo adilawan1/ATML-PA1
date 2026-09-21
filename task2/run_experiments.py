@@ -5,8 +5,8 @@ design study you choose (`--study dan`: lambda_MMD in {0.1, 1, 10}; `--study dan
 strength in {0.25, 0.5, 1}), then the final evaluation and curve figures.
 
 Write your expected effect of stronger alignment on source performance, domain separability and target
-recognition in `task2/hypotheses.md` and commit it BEFORE launching this -- and do not use the target
-results to change any setting afterwards (they are analysis-only).
+recognition in `task2/hypotheses.md` and commit it BEFORE YOU READ THE RESULTS (run with --blind to launch
+now and read later) -- and do not use the target results to change any setting (they are analysis-only).
 
 Checkpoints go to `<ckpt-root>/task2/<run>/checkpoint.pt` (Drive), per-epoch logs and summaries to
 `task2/results/<run>/`. A run whose `run_summary.json` exists is skipped unless `--force`.
@@ -23,7 +23,7 @@ import torch
 from shared.curves import plot_curves
 from shared.pacs_data import PACSData
 from shared.pacs_protocol import load_pacs_protocol
-from shared.preregistration import warn_if_unfilled
+from shared.preregistration import blind_log, warn_if_unfilled
 from shared.trainer import load_config, train_run
 from task2.evaluate_final import evaluate_all
 from task2.methods.cdan import CDAN
@@ -52,6 +52,7 @@ STUDY_RUNS = {"dan": ["dan_lambda0.1", "dan", "dan_lambda10"], "dann": ["dann_gr
 def main(args) -> None:
     warn_if_unfilled("task2/hypotheses.md")
     device = args.device
+    blind = getattr(args, "blind", False)
     protocol = load_pacs_protocol(args.protocol)
     data = PACSData(protocol, args.pacs_root, cache_path=args.cache, include_target=True)
 
@@ -74,7 +75,7 @@ def main(args) -> None:
                 cfg["train"]["max_epochs"] = args.max_epochs
             print(f"\n=== {name} ===")
             try:
-                summary = train_run(method_cls, cfg, data, device, checkpoint_for(name), os.path.join(out_dir, "metrics.jsonl"))
+                summary = train_run(method_cls, cfg, data, device, checkpoint_for(name), os.path.join(out_dir, "metrics.jsonl"), log=blind_log if blind else print)
                 os.makedirs(out_dir, exist_ok=True)
                 with open(summary_path, "w") as f:
                     json.dump({**summary, "overrides": overrides}, f, indent=2)
@@ -84,7 +85,7 @@ def main(args) -> None:
 
     trained = [r for r in plan if os.path.exists(checkpoint_for(r)) and os.path.exists(os.path.join(RESULTS_DIR, r, "run_summary.json"))]
     if "source_only" in trained:
-        evaluate_all(trained, data, checkpoint_for, RESULTS_DIR, device, MAIN_RUNS)
+        evaluate_all(trained, data, checkpoint_for, RESULTS_DIR, device, MAIN_RUNS, verbose=not blind)
         os.makedirs(args.fig_dir, exist_ok=True)
         plot_curves({r: os.path.join(RESULTS_DIR, r, "metrics.jsonl") for r in MAIN_RUNS if r in trained}, os.path.join(args.fig_dir, "task2_curves.png"))
         study = [r for r in STUDY_RUNS[args.study] if r in trained]
@@ -109,4 +110,5 @@ if __name__ == "__main__":
     parser.add_argument("--max-epochs", type=int, default=None, help="debug only (spec: 30)")
     parser.add_argument("--force", action="store_true", help="Retrain even if a finished run exists")
     parser.add_argument("--eval-only", action="store_true")
+    parser.add_argument("--blind", action="store_true", help="hide all result printouts (write hypotheses first, read results after)")
     main(parser.parse_args())

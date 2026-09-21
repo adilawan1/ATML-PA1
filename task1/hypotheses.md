@@ -3,7 +3,8 @@
 The assignment requires a stated hypothesis and an appropriate metric for each of your
 experimental-design choices **before** interpreting the corresponding result. Metrics are
 filled in; the hypotheses are yours to write in your own words. Commit this file before you
-run the experiment it covers, so the git history shows the order.
+read the corresponding result (runs use `--blind`) and before results are committed -- the commit cells
+refuse to push results until this file is complete and committed, so the git history shows the order.
 
 | Design choice | Setting | Metric(s) | Hypothesis (write before results) |
 |---|---|---|---|

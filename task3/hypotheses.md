@@ -1,6 +1,7 @@
-# Task 3 -- controlled design study: expectation (write BEFORE launching `task3/run_experiments.py`)
+# Task 3 -- controlled design study: expectation (write BEFORE you read the results)
 
-State what you expect before interpreting results, in your own words; commit this file, then launch.
+State what you expect before interpreting results, in your own words; commit this file before opening any
+result (runs launched with `--blind` print nothing).
 Task 2's Sketch results must not be used to choose or change any Task 3 setting.
 
 Chosen study (pass to `--study`): [ ] `dan_dg` -- lambda_DG in {0.1, 1, 10}     [ ] `sam` -- rho in {0.01, 0.05, 0.1}

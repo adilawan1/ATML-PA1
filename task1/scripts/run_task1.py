@@ -155,7 +155,8 @@ def main(args) -> None:
 
     table = compact_table(conditions)
     table.to_csv(os.path.join(args.out_dir, "compact_comparison.csv"))
-    print("\n" + table.round(3).to_string())
+    if not getattr(args, "blind", False):
+        print("\n" + table.round(3).to_string())
 
     results = {
         "meta": {
@@ -187,4 +188,5 @@ if __name__ == "__main__":
     parser.add_argument("--cache-dir", default="task1/cache")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--skip-tsne", action="store_true")
+    parser.add_argument("--blind", action="store_true", help="do not print the results table")
     main(parser.parse_args())

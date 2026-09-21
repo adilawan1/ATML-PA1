@@ -137,8 +137,9 @@ def main(args) -> None:
     os.makedirs(args.out_dir, exist_ok=True)
     table = pd.DataFrame(rows).T
     table.to_csv(os.path.join(args.out_dir, "cue_conflicts_summary.csv"))
-    print(table.round(2).to_string())
-    print("\ncosine stability (clean content vs. conflict):", results["representation_stability"])
+    if not getattr(args, "blind", False):
+        print(table.round(2).to_string())
+        print("\ncosine stability (clean content vs. conflict):", results["representation_stability"])
     with open(os.path.join(args.out_dir, "cue_conflicts.json"), "w") as f:
         json.dump(clean_nans(results), f, indent=2)
 
@@ -157,4 +158,5 @@ if __name__ == "__main__":
     parser.add_argument("--fig-dir", default="report/figures")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--skip-tsne", action="store_true")
+    parser.add_argument("--blind", action="store_true", help="do not print the results table")
     main(parser.parse_args())

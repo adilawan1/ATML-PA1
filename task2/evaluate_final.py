@@ -104,11 +104,12 @@ def class_analysis(results: Dict[str, Dict], baseline: str = "source_only", k: i
     return out
 
 
-def evaluate_all(run_names: List[str], data: PACSData, checkpoint_for, results_dir: str, device: str, main_runs: List[str]) -> Dict:
+def evaluate_all(run_names: List[str], data: PACSData, checkpoint_for, results_dir: str, device: str, main_runs: List[str], verbose: bool = True) -> Dict:
     results = {}
     for name in run_names:
         results[name] = evaluate_run(load_model(checkpoint_for(name), device), data, device)
-        print(f"{name:16s} target acc {results[name]['target']['accuracy']:.4f} | domain separability {results[name]['domain_separability']:.4f}")
+        if verbose:
+            print(f"{name:16s} target acc {results[name]['target']['accuracy']:.4f} | domain separability {results[name]['domain_separability']:.4f}")
 
     os.makedirs(results_dir, exist_ok=True)
     with open(os.path.join(results_dir, "summary.json"), "w") as f:
@@ -119,5 +120,8 @@ def evaluate_all(run_names: List[str], data: PACSData, checkpoint_for, results_d
     if "source_only" in results:
         with open(os.path.join(results_dir, "class_analysis.json"), "w") as f:
             json.dump(class_analysis({r: results[r] for r in main_present}), f, indent=2)
-    print("\n" + table.round(4).to_string())
+    if verbose:
+        print("\n" + table.round(4).to_string())
+    else:
+        print(f"evaluation written to {results_dir}/summary.csv (blind mode: not printed)")
     return results

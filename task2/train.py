@@ -24,6 +24,7 @@ if __name__ == "__main__":
     parser.add_argument("--fig-dir", default="report/figures")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--force", action="store_true")
+    parser.add_argument("--blind", action="store_true")
     parser.add_argument("--max-epochs", type=int, default=None, help="debug only (spec: 30)")
     ns = parser.parse_args()
     ns.only, ns.eval_only = [ns.run], False

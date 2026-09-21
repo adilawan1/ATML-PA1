@@ -63,7 +63,9 @@ def main(args) -> None:
     table = pd.DataFrame(rows).T
     os.makedirs(RESULTS_DIR, exist_ok=True)
     table.to_csv(os.path.join(RESULTS_DIR, "summary.csv"))
-    print(table.round(4).to_string())
+    blind = getattr(args, "blind", False)
+    if not blind:
+        print(table.round(4).to_string())
 
     with open(os.path.join(RESULTS_DIR, "sketch_results.json"), "w") as f:
         json.dump(sketch, f, indent=2)
@@ -87,7 +89,8 @@ def main(args) -> None:
             }
         ).T
         cmp_table.to_csv(os.path.join(RESULTS_DIR, "task2_vs_task3.csv"))
-        print("\nTask 2 (target-aware) vs Task 3 (target-free), same target and ERM baseline:\n" + cmp_table.round(4).to_string())
+        if not blind:
+            print("\nTask 2 (target-aware) vs Task 3 (target-free), same target and ERM baseline:\n" + cmp_table.round(4).to_string())
     else:
         print("(task2/results/summary.json not found -- skipping the Task 2 vs Task 3 comparison)")
 
@@ -103,4 +106,5 @@ if __name__ == "__main__":
     parser.add_argument("--protocol", default="shared/splits/pacs_sketch_seed6304.json")
     parser.add_argument("--cache", default="/content/pacs256_with_sketch.pt")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
+    parser.add_argument("--blind", action="store_true", help="hide all result printouts")
     main(parser.parse_args())
