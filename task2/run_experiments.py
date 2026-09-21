@@ -27,7 +27,7 @@ from shared.pacs import CLASSES
 from shared.pacs_data import PACSData
 from shared.pacs_protocol import load_pacs_protocol
 from shared.preregistration import blind_log, warn_if_unfilled
-from shared.trainer import load_config, train_run
+from shared.trainer import invalidate_persisted_run, load_config, persist_run_files, restore_run_files, train_run
 from task2.evaluate_final import evaluate_all
 from task2.methods.cdan import CDAN
 from task2.methods.dan import DAN
@@ -70,7 +70,8 @@ def main(args) -> None:
         for name in plan:
             out_dir = os.path.join(RESULTS_DIR, name)
             summary_path = os.path.join(out_dir, "run_summary.json")
-            if os.path.exists(summary_path) and os.path.exists(checkpoint_for(name)) and not args.force:
+            finished = restore_run_files(out_dir, checkpoint_for(name)) or (os.path.exists(summary_path) and os.path.exists(checkpoint_for(name)))
+            if finished and not args.force:
                 print(f"[skip] {name}: already trained")
                 continue
             config_file, method_cls, overrides = RUNS[name]
@@ -78,11 +79,13 @@ def main(args) -> None:
             if args.max_epochs:  # debugging only; the real runs use the spec's 30
                 cfg["train"]["max_epochs"] = args.max_epochs
             print(f"\n=== {name} ===")
+            invalidate_persisted_run(checkpoint_for(name))
             try:
                 summary = train_run(method_cls, cfg, data, device, checkpoint_for(name), os.path.join(out_dir, "metrics.jsonl"), log=blind_log if blind else print)
                 os.makedirs(out_dir, exist_ok=True)
                 with open(summary_path, "w") as f:
                     json.dump({**summary, "overrides": overrides, "config": cfg}, f, indent=2)
+                persist_run_files(out_dir, checkpoint_for(name))
             except Exception:  # keep going: one failed run must not sink the rest of an unattended batch
                 failures[name] = traceback.format_exc()
                 print(failures[name])

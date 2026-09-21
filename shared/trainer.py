@@ -16,6 +16,7 @@ Per the assignment:
 
 import json
 import os
+import shutil
 import time
 from collections import defaultdict
 from dataclasses import dataclass
@@ -74,6 +75,36 @@ def load_config(path: str, overrides: Optional[Dict] = None) -> Dict:
 
     merge(cfg, overrides or {})
     return cfg
+
+
+RUN_FILES = ("run_summary.json", "metrics.jsonl")
+
+
+def persist_run_files(out_dir: str, checkpoint_path: str) -> None:
+    """Copy a finished run's small files next to its (Drive) checkpoint, so a recycled runtime can restore them."""
+    dest = os.path.dirname(checkpoint_path)
+    for name in RUN_FILES:
+        if os.path.exists(os.path.join(out_dir, name)):
+            shutil.copy2(os.path.join(out_dir, name), os.path.join(dest, name))
+
+
+def restore_run_files(out_dir: str, checkpoint_path: str) -> bool:
+    """True if this run finished earlier (checkpoint + summary exist next to it); restores any missing small files into `out_dir`."""
+    src_dir = os.path.dirname(checkpoint_path)
+    if not (os.path.exists(checkpoint_path) and os.path.exists(os.path.join(src_dir, "run_summary.json"))):
+        return False
+    os.makedirs(out_dir, exist_ok=True)
+    for name in RUN_FILES:
+        if os.path.exists(os.path.join(src_dir, name)) and not os.path.exists(os.path.join(out_dir, name)):
+            shutil.copy2(os.path.join(src_dir, name), os.path.join(out_dir, name))
+    return True
+
+
+def invalidate_persisted_run(checkpoint_path: str) -> None:
+    """Called before (re)training: an interrupted retrain must not look finished."""
+    stale = os.path.join(os.path.dirname(checkpoint_path), "run_summary.json")
+    if os.path.exists(stale):
+        os.remove(stale)
 
 
 def train_run(

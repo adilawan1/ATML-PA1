@@ -28,7 +28,7 @@ from shared.eval_utils import predict, source_val_metrics
 from shared.pacs_data import SOURCE_DOMAINS, PACSData
 from shared.pacs_protocol import load_pacs_protocol
 from shared.preregistration import blind_log, warn_if_unfilled
-from shared.trainer import load_config, train_run
+from shared.trainer import invalidate_persisted_run, load_config, persist_run_files, restore_run_files, train_run
 from task2.evaluate_final import load_model
 from task3.evaluation.sharpness import fixed_validation_batch, local_sharpness
 from task3.evaluation.source_domain_separability import source_domain_separability_score
@@ -90,7 +90,10 @@ def main(args) -> None:
         for name in plan:
             out_dir = os.path.join(RESULTS_DIR, name)
             summary_path = os.path.join(out_dir, "run_summary.json")
-            if os.path.exists(summary_path) and os.path.exists(checkpoint_for(args.ckpt_root, name)) and not args.force:
+            finished = restore_run_files(out_dir, checkpoint_for(args.ckpt_root, name)) or (
+                os.path.exists(summary_path) and os.path.exists(checkpoint_for(args.ckpt_root, name))
+            )
+            if finished and not args.force:
                 print(f"[skip] {name}: already trained")
                 continue
             config_file, method_cls, overrides = RUNS[name]
@@ -98,10 +101,12 @@ def main(args) -> None:
             if args.max_epochs:  # debugging only; the real runs use the spec's 30
                 cfg["train"]["max_epochs"] = args.max_epochs
             print(f"\n=== {name} ===")
+            invalidate_persisted_run(checkpoint_for(args.ckpt_root, name))
             try:
                 summary = train_run(method_cls, cfg, data, device, checkpoint_for(args.ckpt_root, name), os.path.join(out_dir, "metrics.jsonl"), log=blind_log if blind else print)
                 with open(summary_path, "w") as f:
                     json.dump({**summary, "overrides": overrides, "config": cfg}, f, indent=2)
+                persist_run_files(out_dir, checkpoint_for(args.ckpt_root, name))
             except Exception:
                 failures[name] = traceback.format_exc()
                 print(failures[name])
