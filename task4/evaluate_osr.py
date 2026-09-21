@@ -14,6 +14,8 @@ Produces:
    (known-test vs. near vs. far), the required compact multi-panel figure.
 4. `task4/results/failure_cases.json` -- incorrectly-accepted near/far examples under the
    Vanilla MLS threshold (unknown class, predicted class, score, threshold).
+5. `task4/results/unknown_class_breakdown.json` -- per unknown class: acceptance rate under each method's
+   MLS threshold and which CIFAR-10 labels absorbed the accepted images.
 
 PROSER (once its cache exists) contributes two rows: MLS over its ten KNOWN-class logits (directly
 comparable with Vanilla/GCSC; CSA also uses only those logits) and a second row using its
@@ -25,6 +27,7 @@ threshold calibrated on CIFAR-10 validation scores only.
 import argparse
 import json
 import os
+from collections import Counter
 from typing import Dict, List, Sequence
 
 import matplotlib.pyplot as plt
@@ -156,6 +159,40 @@ def build_failure_cases(cache_dir: str, data_root: str, table1_rows: List[Dict],
     return result
 
 
+def unknown_breakdown(scores: np.ndarray, predicted: Sequence[str], unknown_names: Sequence[str], threshold: float) -> Dict[str, Dict]:
+    """Per unknown fine class: how many test images were ACCEPTED as known under `threshold`
+    (accept when score <= threshold), and which CIFAR-10 labels absorbed them (Research Question 1)."""
+    names = np.asarray(unknown_names)
+    predicted = np.asarray(predicted)
+    out = {}
+    for cls in sorted(set(names.tolist())):
+        in_class = names == cls
+        accepted = in_class & (scores <= threshold)
+        out[cls] = {
+            "n": int(in_class.sum()),
+            "accepted": int(accepted.sum()),
+            "accept_rate": float(accepted.sum() / in_class.sum()),
+            "absorbed_by": dict(Counter(predicted[accepted].tolist()).most_common()),
+        }
+    return out
+
+
+def build_unknown_breakdown(cache_dir: str, data_root: str, methods: Sequence[str], table2_rows: List[Dict]) -> Dict:
+    """Per-method (MLS score, that method's own validation-calibrated threshold) breakdown for the near and far groups."""
+    cifar10_classes = CIFAR10(root=data_root, train=False, download=True).classes
+    result = {}
+    for method in methods:
+        tau = next(r for r in table2_rows if r["method"] == method and r["score"] == "MLS")["threshold_tau"]
+        result[method] = {"threshold_tau": tau}
+        for group in ("near", "far"):
+            cache = load_cache(cache_dir, method, group)
+            dataset = CIFAR100UnknownSubset(data_root, group=group)
+            predicted = [cifar10_classes[p] for p in cache["logits"].argmax(dim=1).numpy()]
+            names = [dataset.class_names[label] for label in dataset.original_labels]
+            result[method][group] = unknown_breakdown(mls_score(cache["logits"].numpy()), predicted, names, tau)
+    return result
+
+
 def main(data_root: str, cache_dir: str) -> None:
     os.makedirs("task4/results", exist_ok=True)
 
@@ -176,6 +213,9 @@ def main(data_root: str, cache_dir: str) -> None:
     if "proser" not in available_methods:
         print("\n(PROSER not yet cached -- table 2 will regenerate with its row, plus a separate\n"
               " placeholder-score row, once task4/methods/proser.py is implemented and cached.)")
+
+    with open("task4/results/unknown_class_breakdown.json", "w") as f:
+        json.dump(build_unknown_breakdown(cache_dir, data_root, available_methods, table2), f, indent=2)
 
     plot_score_distributions(cache_dir, "vanilla", "report/figures/task4_score_distributions.png")
 

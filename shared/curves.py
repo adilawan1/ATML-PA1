@@ -38,3 +38,45 @@ def plot_curves(runs: Dict[str, str], path: str) -> None:
     axes[0][0].legend(fontsize=7)
     fig.tight_layout()
     save_figure(fig, path)
+
+
+def plot_confusions(results: Dict[str, Dict], class_names: List[str], path: str) -> None:
+    """Row-normalized target confusion matrices, one panel per run, for the per-class failure analysis
+    (`results[run]["target"]["confusion"]`; rows = true class, columns = predicted class)."""
+    import numpy as np
+
+    apply_style()
+    n = len(results)
+    fig, axes = plt.subplots(1, n, figsize=(3.6 * n, 3.6), squeeze=False)
+    for ax, (name, r) in zip(axes[0], results.items()):
+        conf = np.array(r["target"]["confusion"], dtype=float)
+        norm = conf / conf.sum(axis=1, keepdims=True).clip(min=1)
+        ax.imshow(norm, vmin=0, vmax=1, cmap="Blues")
+        ax.set_title(f"{name}  (acc {r['target']['accuracy']:.3f})", fontsize=8)
+        ax.set_xticks(range(len(class_names)))
+        ax.set_yticks(range(len(class_names)))
+        ax.set_xticklabels(class_names, rotation=90, fontsize=6)
+        ax.set_yticklabels(class_names, fontsize=6)
+        ax.set_xlabel("predicted", fontsize=7)
+        ax.grid(False)
+        for i in range(len(class_names)):
+            for j in range(len(class_names)):
+                if norm[i, j] >= 0.1:
+                    ax.text(j, i, f"{norm[i, j]:.2f}", ha="center", va="center", fontsize=5, color="white" if norm[i, j] > 0.5 else "black")
+    axes[0][0].set_ylabel("true", fontsize=7)
+    fig.tight_layout()
+    save_figure(fig, path)
+
+
+def plot_study(table, xlabel: str, columns: Dict[str, str], path: str, log_x: bool = False) -> None:
+    """Compact plot for a controlled alignment/regularization-strength study: one panel per metric vs. strength.
+    `table` is a DataFrame with a 'strength' column; `columns` maps column name -> panel title."""
+    apply_style()
+    fig, axes = plt.subplots(1, len(columns), figsize=(3.4 * len(columns), 3.2), squeeze=False)
+    for ax, (col, title) in zip(axes[0], columns.items()):
+        ax.plot(table["strength"], table[col], marker="o")
+        ax.set_title(title, fontsize=9)
+        ax.set_xlabel(xlabel)
+        ax.set_xscale("log" if log_x else "linear")
+    fig.tight_layout()
+    save_figure(fig, path)

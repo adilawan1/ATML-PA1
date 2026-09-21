@@ -49,6 +49,7 @@ RUNS = {
 }
 MAIN_RUNS = ["dan_dg", "sam"]
 STUDY_RUNS = {"dan_dg": ["dan_dg_lambda0.1", "dan_dg", "dan_dg_lambda10"], "sam": ["sam_rho0.01", "sam", "sam_rho0.1"]}
+STUDY_VALUES = {"dan_dg": ("lambda_DG", [0.1, 1.0, 10.0], True), "sam": ("rho", [0.01, 0.05, 0.1], False)}
 
 
 def checkpoint_for(ckpt_root: str, name: str) -> str:
@@ -100,7 +101,7 @@ def main(args) -> None:
             try:
                 summary = train_run(method_cls, cfg, data, device, checkpoint_for(args.ckpt_root, name), os.path.join(out_dir, "metrics.jsonl"), log=blind_log if blind else print)
                 with open(summary_path, "w") as f:
-                    json.dump({**summary, "overrides": overrides}, f, indent=2)
+                    json.dump({**summary, "overrides": overrides, "config": cfg}, f, indent=2)
             except Exception:
                 failures[name] = traceback.format_exc()
                 print(failures[name])

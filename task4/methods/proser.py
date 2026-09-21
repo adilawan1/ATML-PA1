@@ -137,6 +137,17 @@ def train_proser(
     max_steps_per_epoch: Optional[int] = None,  # debugging only
 ) -> PROSERNet:
     set_seed(seed)
+    import json
+
+    os.makedirs(os.path.dirname(metrics_path), exist_ok=True)
+    with open(os.path.join(os.path.dirname(metrics_path), "run_config.json"), "w") as f:
+        json.dump(
+            {"seed": seed, "epochs": epochs, "lr": lr, "momentum": momentum, "weight_decay": weight_decay, "batch_size": batch_size,
+             "beta_classifier_placeholder": BETA_CLASSIFIER_PLACEHOLDER, "gamma_data_placeholder": GAMMA_DATA_PLACEHOLDER,
+             "num_dummy": NUM_DUMMY, "mixup_beta_alpha": MIXUP_ALPHA, "detection_temperature": DETECTION_TEMPERATURE,
+             "initialized_from": vanilla_checkpoint, "cosine_schedule": True},
+            f, indent=2,
+        )
     logger = get_logger("task4_proser")
     metric_logger = MetricLogger(metrics_path)
     if os.path.exists(metrics_path):

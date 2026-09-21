@@ -68,6 +68,17 @@ python -m task4.data.make_splits --data-root /path/to/cifar_root
 Per-task details, design notes and the exact outputs live in each `taskN/README.md`. Every reported number
 should trace back to a file under the corresponding `taskN/results/`.
 
+## Before submitting
+
+```bash
+python tools/check_submission.py                                   # PASS / MISSING / WARN for every Required-Evidence item + repo state
+python tools/check_submission.py --write-map report/evidence_map.md  # which committed file backs each item
+```
+
+The audit checks the committed result tables/figures/logs of all four tasks, the split-index files (PACS, STL-10,
+CIFAR-10), that each task's `hypotheses.md` is filled in and was committed, the recorded environment (`env/`), and that the
+repository is clean, pushed, public, and free of checkpoints, datasets and large files.
+
 ## Running on Colab
 
 See `notebooks/colab_setup.ipynb`. In short: mount Drive for datasets/checkpoints (git-ignored,

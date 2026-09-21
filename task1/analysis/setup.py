@@ -106,8 +106,20 @@ def train_or_load_heads(features: Dict, cfg: Dict, num_classes: int, cache_dir: 
     return heads, info
 
 
+def save_split_indices(train_set, cfg: Dict, path: str = "task1/data/stl10_train_val_split_seed6304.json") -> None:
+    """The stratified 80/20 train/val split of the official STL-10 training partition, saved as indices
+    (deterministic, seed 6304) so it is part of the repository rather than only implied by code."""
+    import json
+
+    train_idx, val_idx = stratified_train_val_indices(train_set, cfg["split"]["val_fraction"], cfg["split"]["seed"])
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump({"seed": cfg["split"]["seed"], "val_fraction": cfg["split"]["val_fraction"], "train": train_idx, "val": val_idx}, f)
+
+
 def load_stack(data_root: str, cfg: Dict, cache_dir: str, device: str) -> Task1Stack:
     train_set = load_stl10(data_root, "train")
+    save_split_indices(train_set, cfg)
     test_set = load_stl10(data_root, "test")
     class_names = list(train_set.classes)
 

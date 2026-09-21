@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 from typing import Dict
 
@@ -53,10 +54,26 @@ def load_pacs_protocol(path: str = DEFAULT_PROTOCOL_PATH) -> Dict:
         return json.load(f)
 
 
+def validate_protocol(protocol: Dict, root: str) -> int:
+    """Number of files listed in the split that are missing under `root` (0 = the split fits this copy of PACS)."""
+    listed = [p for d in SOURCE_DOMAINS for k in ("train", "val") for p, _ in protocol[d][k]] + [p for p, _ in protocol[TARGET_DOMAIN]["all"]]
+    return sum(not os.path.exists(os.path.join(root, p)) for p in listed)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", required=True, help="PACS root: <root>/<domain>/<class>/<image>")
     parser.add_argument("--out", default=DEFAULT_PROTOCOL_PATH)
+    parser.add_argument("--regenerate", action="store_true", help="rebuild the split even if one is already committed")
     args = parser.parse_args()
-    build_pacs_protocol(args.root, args.out)
-    print(f"Wrote PACS protocol to {args.out}")
+
+    if os.path.exists(args.out) and not args.regenerate:
+        # The committed split is the authoritative one: every session and every task uses exactly these files,
+        # independent of the local scikit-learn version. Just check it fits this copy of the dataset.
+        missing = validate_protocol(load_pacs_protocol(args.out), args.root)
+        if missing:
+            raise SystemExit(f"{args.out} lists {missing} files that are not under {args.root}; rebuild PACS with shared.prepare_pacs")
+        print(f"Using the committed split {args.out} (all listed files present under {args.root})")
+    else:
+        build_pacs_protocol(args.root, args.out)
+        print(f"Wrote PACS protocol to {args.out}")

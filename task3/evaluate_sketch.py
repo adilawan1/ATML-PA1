@@ -19,12 +19,13 @@ import torch
 from sklearn.metrics import confusion_matrix
 
 from common.metrics import accuracy, macro_f1, per_class_accuracy
+from shared.curves import plot_confusions, plot_study
 from shared.eval_utils import predict
 from shared.pacs import CLASSES
 from shared.pacs_data import TARGET_DOMAIN, PACSData
 from shared.pacs_protocol import load_pacs_protocol
 from task2.evaluate_final import class_analysis, load_model
-from task3.run_experiments import MAIN_RUNS, RESULTS_DIR, STUDY_RUNS, checkpoint_for
+from task3.run_experiments import MAIN_RUNS, RESULTS_DIR, STUDY_RUNS, STUDY_VALUES, checkpoint_for
 
 
 def sketch_metrics(model, data: PACSData, device: str) -> dict:
@@ -94,10 +95,20 @@ def main(args) -> None:
     else:
         print("(task2/results/summary.json not found -- skipping the Task 2 vs Task 3 comparison)")
 
-    study_names = [n for study in STUDY_RUNS.values() for n in study if n in rows]
-    if study_names:
-        table.loc[study_names, ["mean_src_f1", "source_domain_separability", "sharpness", "sketch_acc"]].to_csv(os.path.join(RESULTS_DIR, "study.csv"))
+    fig_dir = getattr(args, "fig_dir", "report/figures")
+    os.makedirs(fig_dir, exist_ok=True)
+    plot_confusions({r: {"target": sketch[r]} for r in main_present}, CLASSES, os.path.join(fig_dir, "task3_confusions.png"))
 
+    for study, names_in_study in STUDY_RUNS.items():  # the chosen study is the one with a non-main member trained
+        if any(n in rows for n in names_in_study if n not in MAIN_RUNS):
+            label, values, log_x = STUDY_VALUES[study]
+            study_rows = [{"run": n, "strength": v, **{k: rows[n][k] for k in ("mean_src_f1", "source_domain_separability", "sharpness", "sketch_acc")}}
+                          for n, v in zip(names_in_study, values) if n in rows]
+            study_table = pd.DataFrame(study_rows)
+            study_table.to_csv(os.path.join(RESULTS_DIR, "study.csv"), index=False)
+            plot_study(study_table, label, {"mean_src_f1": "mean source-val macro-F1", "source_domain_separability": "source-domain separability",
+                                            "sharpness": "sharpness proxy", "sketch_acc": "Sketch accuracy"},
+                       os.path.join(fig_dir, f"task3_study_{study}.png"), log_x=log_x)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -106,5 +117,6 @@ if __name__ == "__main__":
     parser.add_argument("--protocol", default="shared/splits/pacs_sketch_seed6304.json")
     parser.add_argument("--cache", default="/content/pacs256_with_sketch.pt")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
+    parser.add_argument("--fig-dir", default="report/figures")
     parser.add_argument("--blind", action="store_true", help="hide all result printouts")
     main(parser.parse_args())

@@ -20,7 +20,10 @@ from typing import Dict
 
 import torch
 
-from shared.curves import plot_curves
+import pandas as pd
+
+from shared.curves import plot_confusions, plot_curves, plot_study
+from shared.pacs import CLASSES
 from shared.pacs_data import PACSData
 from shared.pacs_protocol import load_pacs_protocol
 from shared.preregistration import blind_log, warn_if_unfilled
@@ -47,6 +50,7 @@ RUNS: Dict[str, tuple] = {
 }
 MAIN_RUNS = ["source_only", "dan", "dann", "cdan"]
 STUDY_RUNS = {"dan": ["dan_lambda0.1", "dan", "dan_lambda10"], "dann": ["dann_grl0.25", "dann_grl0.5", "dann"]}
+STUDY_VALUES = {"dan": ("lambda_MMD", [0.1, 1.0, 10.0], True), "dann": ("max GRL strength", [0.25, 0.5, 1.0], False)}
 
 
 def main(args) -> None:
@@ -78,18 +82,29 @@ def main(args) -> None:
                 summary = train_run(method_cls, cfg, data, device, checkpoint_for(name), os.path.join(out_dir, "metrics.jsonl"), log=blind_log if blind else print)
                 os.makedirs(out_dir, exist_ok=True)
                 with open(summary_path, "w") as f:
-                    json.dump({**summary, "overrides": overrides}, f, indent=2)
+                    json.dump({**summary, "overrides": overrides, "config": cfg}, f, indent=2)
             except Exception:  # keep going: one failed run must not sink the rest of an unattended batch
                 failures[name] = traceback.format_exc()
                 print(failures[name])
 
     trained = [r for r in plan if os.path.exists(checkpoint_for(r)) and os.path.exists(os.path.join(RESULTS_DIR, r, "run_summary.json"))]
     if "source_only" in trained:
-        evaluate_all(trained, data, checkpoint_for, RESULTS_DIR, device, MAIN_RUNS, verbose=not blind)
+        results = evaluate_all(trained, data, checkpoint_for, RESULTS_DIR, device, MAIN_RUNS, verbose=not blind)
         os.makedirs(args.fig_dir, exist_ok=True)
         plot_curves({r: os.path.join(RESULTS_DIR, r, "metrics.jsonl") for r in MAIN_RUNS if r in trained}, os.path.join(args.fig_dir, "task2_curves.png"))
+        plot_confusions({r: results[r] for r in MAIN_RUNS if r in results}, CLASSES, os.path.join(args.fig_dir, "task2_confusions.png"))
         study = [r for r in STUDY_RUNS[args.study] if r in trained]
         if len(study) > 1:
+            label, values, log_x = STUDY_VALUES[args.study]
+            rows = [
+                {"run": r, "strength": v, "mean_src_f1": results[r]["source_val"]["mean_macro_f1"], "mean_src_acc": results[r]["source_val"]["mean_accuracy"],
+                 "domain_separability": results[r]["domain_separability"], "target_acc": results[r]["target"]["accuracy"], "target_f1": results[r]["target"]["macro_f1"]}
+                for r, v in zip(STUDY_RUNS[args.study], values) if r in results
+            ]
+            study_table = pd.DataFrame(rows)
+            study_table.to_csv(os.path.join(RESULTS_DIR, "study.csv"), index=False)
+            plot_study(study_table, label, {"mean_src_f1": "mean source-val macro-F1", "domain_separability": "domain separability", "target_acc": "target (Sketch) accuracy"},
+                       os.path.join(args.fig_dir, f"task2_study_{args.study}.png"), log_x=log_x)
             plot_curves({r: os.path.join(RESULTS_DIR, r, "metrics.jsonl") for r in study}, os.path.join(args.fig_dir, f"task2_study_{args.study}_curves.png"))
     if failures:
         with open(os.path.join(RESULTS_DIR, "failures.json"), "w") as f:
