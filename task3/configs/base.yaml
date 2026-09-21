@@ -1,0 +1,10 @@
+# Shared by every Task 3 method: identical to Task 2's protocol (same splits, initialization, preprocessing,
+# domain-balanced batches, optimizer, epoch budget, early-stopping rule, seed). No Sketch image is loaded.
+seed: 6304
+train:
+  optimizer: adamw
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  max_epochs: 30
+  patience: 5
+  batch_per_source_domain: 8

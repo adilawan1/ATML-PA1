@@ -1,19 +1,13 @@
 from __future__ import annotations
 
-"""Checkpoint/hyperparameter selection for Task 3 -- mean macro-F1 across the three source
-validation domains ONLY. No Sketch image may be loaded by this module or anything it calls;
-that is enforced procedurally (this file never imports the target split), not just by convention.
-"""
+"""Checkpoint / setting selection for Task 3: mean macro-F1 across the three SOURCE validation
+domains, and nothing else. `shared.trainer.train_run` applies it every epoch. This module imports no
+target-domain code and takes a `PACSData` that may have been built with `include_target=False`, which
+is how the Task 3 training script never opens a Sketch file."""
 
-from typing import Dict
-
-import torch.nn as nn
-from torch.utils.data import DataLoader
-
-from task2.methods.source_only import SOURCE_DOMAINS, mean_source_macro_f1
-
-__all__ = ["SOURCE_DOMAINS", "mean_source_macro_f1", "select_by_mean_source_macro_f1"]
+from shared.eval_utils import source_val_metrics
+from shared.pacs_data import PACSData
 
 
-def select_by_mean_source_macro_f1(model: nn.Module, val_loaders: Dict[str, DataLoader], device: str) -> float:
-    return mean_source_macro_f1(model, val_loaders, device)
+def mean_source_macro_f1(model, data: PACSData, device: str) -> float:
+    return source_val_metrics(model, data, device)["mean_macro_f1"]

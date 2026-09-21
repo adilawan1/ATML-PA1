@@ -19,8 +19,8 @@ def rbf_mmd2(
 ) -> torch.Tensor:
     """Squared MMD between batches `x` and `y` using a sum of RBF kernels.
 
-    Bandwidths are `bandwidth_multipliers` times the median pairwise squared distance of the
-    combined batch, matching the assignment's kernel construction for both Task 2's DAN
+    Kernel k(a, b) = exp(-||a - b||^2 / gamma), as in DAN (Long et al., 2015), with gamma = each
+    multiplier times the median pairwise squared distance of the combined batch, matching the assignment's kernel construction for both Task 2's DAN
     (source vs. target) and Task 3's DAN-DG (each pair of source domains) -- reused unchanged
     per the spec so the role of target access can be examined without also changing the
     discrepancy measure.
@@ -34,7 +34,7 @@ def rbf_mmd2(
     kernel_sum = torch.zeros_like(sq_dists)
     for mult in bandwidth_multipliers:
         bandwidth = mult * median_sq_dist
-        kernel_sum = kernel_sum + torch.exp(-sq_dists / (2.0 * bandwidth))
+        kernel_sum = kernel_sum + torch.exp(-sq_dists / bandwidth)
 
     nx = x.size(0)
     k_xx = kernel_sum[:nx, :nx]

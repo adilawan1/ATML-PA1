@@ -1,39 +1,10 @@
-seed: 6304
+base: base.yaml
 method: dann
-data:
-  pacs_root: null
-  protocol_path: shared/splits/pacs_sketch_seed6304.json
-  image_size: 256
-  crop_size: 224
-model:
-  backbone: resnet18
-  pretrained_weights: IMAGENET1K_V1
-  num_classes: 7
-batchnorm:
-  freeze_running_stats: true
-train:
-  optimizer: adamw
-  lr: 1.0e-4
-  weight_decay: 1.0e-4
-  max_epochs: 30
-  patience: 5
-  batch_per_source_domain: 8
-  batch_target: 24
 discriminator:
   hidden_dim: 256
   dropout: 0.5
 grl_schedule:
-  gamma: 10.0
-  max_alpha: 1.0
+  gamma: 10.0 # alpha(p) = 2 / (1 + exp(-10 p)) - 1
+  max_alpha: 1.0 # main comparison; the controlled study scales the schedule's ceiling over {0.25, 0.5, 1}
 loss:
   domain_loss_weight: 1.0
-checkpoint_selection: mean_source_val_macro_f1
-output:
-  checkpoint: task2/results/dann/checkpoint.pt
-  metrics: task2/results/dann/metrics.jsonl
-
-# Controlled design study (Task 2, Step 6) -- vary this list if DANN is the chosen bounded study,
-# by scaling grl_schedule so alpha's ceiling equals each value (schedule shape unchanged).
-# Main comparison above must keep grl_schedule.max_alpha == 1.0.
-controlled_study:
-  max_grl_strength_values: [0.25, 0.5, 1.0]

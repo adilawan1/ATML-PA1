@@ -20,6 +20,6 @@ def domain_separability_score(source_features, target_features) -> float:
     x_train, x_test, y_train, y_test = train_test_split(
         x, y, test_size=0.3, random_state=SPLIT_SEED, stratify=y
     )
-    clf = LogisticRegression(C=1.0, class_weight="balanced", max_iter=1000)
+    clf = LogisticRegression(C=1.0, class_weight="balanced", max_iter=3000)
     clf.fit(x_train, y_train)
     return float(clf.score(x_test, y_test))

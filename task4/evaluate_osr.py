@@ -15,9 +15,11 @@ Produces:
 4. `task4/results/failure_cases.json` -- incorrectly-accepted near/far examples under the
    Vanilla MLS threshold (unknown class, predicted class, score, threshold).
 
-TODO once PROSER exists: add its cache to `--methods` for table 2, and add a second PROSER
-row using its placeholder-based detection score (not MLS) per the assignment -- that row
-needs PROSER-specific logic (dummy-classifier outputs) not covered by `build_table2` below.
+PROSER (once its cache exists) contributes two rows: MLS over its ten KNOWN-class logits (directly
+comparable with Vanilla/GCSC; CSA also uses only those logits) and a second row using its
+placeholder-based detection score (reference implementation: temperature-1024 softmax over
+[known logits, max dummy logit], unknownness = P(dummy) - max P(known)); both use the 95th-percentile
+threshold calibrated on CIFAR-10 validation scores only.
 """
 
 import argparse
@@ -35,6 +37,7 @@ from common.plotting import apply_style, save_figure
 from task4.data.cifar100_unknowns import CIFAR100UnknownSubset
 from task4.evaluation.failure_analysis import find_incorrect_acceptances
 from task4.evaluation.thresholds import evaluate_score
+from task4.methods.proser import proser_placeholder_score
 from task4.scores.energy import energy_score
 from task4.scores.mahalanobis import fit_class_gaussians, mahalanobis_score
 from task4.scores.mls import mls_score
@@ -92,6 +95,17 @@ def build_table2(cache_dir: str, methods: Sequence[str]) -> List[Dict]:
             ),
         }
         rows.append(row)
+
+        if method == "proser":
+            placeholder = lambda c: proser_placeholder_score(c["logits"].numpy(), c["dummy_logits"].numpy())  # noqa: E731
+            rows.append(
+                {
+                    "method": method,
+                    "score": "placeholder",
+                    "csa": csa,
+                    **evaluate_score(placeholder(val), placeholder(test), placeholder(near), placeholder(far)),
+                }
+            )
     return rows
 
 

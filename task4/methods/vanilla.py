@@ -11,6 +11,7 @@ from torchvision.datasets import CIFAR10
 
 from common.logging import MetricLogger, get_logger
 from common.metrics import accuracy
+from common.seed import set_seed
 from task4.data.cifar10 import load_cifar10_split
 from task4.models.resnet_cifar import resnet18_cifar
 
@@ -78,6 +79,7 @@ def train_vanilla(
     lr: float = 0.1,
     momentum: float = 0.9,
     weight_decay: float = 5e-4,
+    seed: int = 6304,
     checkpoint_path: str = "task4/results/vanilla/checkpoint.pt",
     metrics_path: str = "task4/results/vanilla/metrics.jsonl",
     train_transform: Optional[transforms.Compose] = None,
@@ -87,6 +89,7 @@ def train_vanilla(
     `train_transform` is overridden by `task4.methods.gcsc` to insert RandAugment while
     reusing this exact loop/schedule/checkpoint rule, per the assignment's controlled comparison.
     """
+    set_seed(seed)  # the spec fixes seed 6304 for every Task 4 training run
     logger = get_logger("task4_vanilla")
     metric_logger = MetricLogger(metrics_path)
 

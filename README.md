@@ -40,21 +40,33 @@ Datasets (not committed; see `.gitignore`):
 
 ## Reproducing each task
 
-Build the shared PACS split protocol once (used by both Task 2 and Task 3):
+Everything is driven by `notebooks/colab_setup.ipynb` (one section per task) or, equivalently, these commands.
+Seed 6304 everywhere the assignment specifies a seed; small results (JSON/CSV/figures) are committed, checkpoints
+and datasets are not.
 
 ```bash
-python -m shared.pacs_protocol --root /path/to/pacs
-```
+# PACS (Tasks 2 and 3): Hugging Face copy -> folders, verify counts, build + commit the split (once)
+python -m shared.prepare_pacs --out /content/pacs --parquet /path/to/cache/pacs_flwrlabs.parquet
+python -m shared.verify_pacs  --root /content/pacs
+python -m shared.pacs_protocol --root /content/pacs
 
-Build the CIFAR-10 90/10 split used by Task 4 (CIFAR-100 unknown groups are fixed, see
-`task4/data/cifar100_unknowns.py`, and need no split file):
+# Task 1 (STL-10): interventions, then cue conflicts in the order documented in task1/README.md
+python -m task1.scripts.run_task1 --data-root /path/to/data
+python -m task1.data.make_cue_conflicts --data-root /path/to/data --preview   # calibrate, then freeze the rule
+python -m task1.data.make_cue_conflicts --data-root /path/to/data
+python -m task1.scripts.run_cue_conflicts --data-root /path/to/data
 
-```bash
+# Task 2, then Task 3 (needs Task 2's Source-only checkpoint); pick each task's controlled study
+python -m task2.run_experiments --pacs-root /content/pacs --ckpt-root /path/to/checkpoints --study dan
+python -m task3.run_experiments --pacs-root /content/pacs --ckpt-root /path/to/checkpoints --study sam
+python -m task3.evaluate_sketch --pacs-root /content/pacs --ckpt-root /path/to/checkpoints
+
+# Task 4 (CIFAR-10 known / CIFAR-100 unknown): see task4/README.md (Vanilla, GCSC, PROSER, evaluation)
 python -m task4.data.make_splits --data-root /path/to/cifar_root
 ```
 
-Per-task instructions and exact commands live in each `taskN/README.md`. Every reported
-number in the report should trace back to a file under the corresponding `taskN/results/`.
+Per-task details, design notes and the exact outputs live in each `taskN/README.md`. Every reported number
+should trace back to a file under the corresponding `taskN/results/`.
 
 ## Running on Colab
 

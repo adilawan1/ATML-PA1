@@ -1,24 +1,22 @@
 from __future__ import annotations
 
-"""SAM -- Sharpness-Aware Minimization (Task 3, Step 3): min_theta max_{||eps||<=rho} L(theta+eps).
+"""SAM -- Sharpness-Aware Minimization (Task 3, Step 3): min_theta max_{||eps||_2<=rho} L_ERM(theta + eps).
 
-`SAMOptimizer` below follows the standard two-step public SAM pattern (ascent step, then a
-descent step at the perturbed point using the original optimizer) -- attribute this pattern
-to Foret et al. (2021) / the widely-used community reference implementation in the README.
+Standard, non-adaptive SAM with AdamW as the base optimizer (same lr / weight decay as ERM). Each step
+does two forward/backward passes: (1) the gradient at theta gives the normalized ascent perturbation
+eps = rho * g / ||g||; (2) the gradient at theta + eps is used to update the ORIGINAL parameters.
+BatchNorm running statistics stay frozen during both passes (the trainer keeps BN modules in eval mode).
 
-TODO (Task 3, Day 4): reuse `task2.methods.source_only`'s domain-balanced batch construction,
-but replace the single optimizer.step() with:
-    freeze_batchnorm_stats(model)             # keep BN running stats frozen for BOTH passes
-    loss = criterion(model(images), labels); loss.backward()
-    optimizer.first_step(zero_grad=True)
-    criterion(model(images), labels).backward()
-    optimizer.second_step(zero_grad=True)
-rho = 0.05 for the main comparison; controlled study sweeps rho in {0.01, 0.05, 0.1}.
+`SAMOptimizer` follows the standard public two-step SAM pattern (Foret et al., 2021; cf. the widely used
+davda54/sam implementation) -- attributed in the README.
 """
 
-from typing import Type
+from typing import Dict, Type
 
 import torch
+import torch.nn.functional as F
+
+from shared.trainer import Batch, Method
 
 
 class SAMOptimizer(torch.optim.Optimizer):
@@ -58,14 +56,7 @@ class SAMOptimizer(torch.optim.Optimizer):
     def _grad_norm(self) -> torch.Tensor:
         device = self.param_groups[0]["params"][0].device
         return torch.norm(
-            torch.stack(
-                [
-                    p.grad.norm(2).to(device)
-                    for group in self.param_groups
-                    for p in group["params"]
-                    if p.grad is not None
-                ]
-            ),
+            torch.stack([p.grad.norm(2).to(device) for group in self.param_groups for p in group["params"] if p.grad is not None]),
             2,
         )
 
@@ -73,8 +64,23 @@ class SAMOptimizer(torch.optim.Optimizer):
         raise RuntimeError("Use first_step()/second_step() explicitly; SAM needs two forward/backward passes.")
 
 
-RHO_MAIN = 0.05
+class SAM(Method):
+    uses_target = False
 
+    def __init__(self, cfg, model, device):
+        super().__init__(cfg, model, device)
+        self.rho = cfg["sam"]["rho"]
 
-def train_sam(*args, **kwargs):
-    raise NotImplementedError("Implement per the module docstring on Task 3's implementation day.")
+    def build_optimizer(self, params, lr: float, weight_decay: float):
+        return SAMOptimizer(params, torch.optim.AdamW, rho=self.rho, lr=lr, weight_decay=weight_decay)
+
+    def step(self, batch: Batch, optimizer: SAMOptimizer, progress: float) -> Dict[str, torch.Tensor]:
+        loss = F.cross_entropy(self.model(batch.source_x), batch.source_y)
+        optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+        optimizer.first_step(zero_grad=True)
+
+        perturbed_loss = F.cross_entropy(self.model(batch.source_x), batch.source_y)
+        perturbed_loss.backward()
+        optimizer.second_step(zero_grad=True)
+        return {"cls_loss": loss.detach(), "perturbed_loss": perturbed_loss.detach()}

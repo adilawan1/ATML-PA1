@@ -19,3 +19,12 @@ def biggest_class_shifts(
     delta = acc_after - acc_before
     order = np.argsort(delta)
     return order[-k:][::-1], order[:k]
+
+
+def dominant_confusion(confusion: np.ndarray, cls: int) -> Tuple[int, float]:
+    """For true class `cls`: (most frequent wrong predicted class, its share of that class's samples)."""
+    row = confusion[cls].astype(float).copy()
+    total = row.sum()
+    row[cls] = -1
+    wrong = int(np.argmax(row))
+    return wrong, float(confusion[cls][wrong] / total) if total else 0.0

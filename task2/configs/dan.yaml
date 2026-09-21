@@ -1,33 +1,5 @@
-seed: 6304
+base: base.yaml
 method: dan
-data:
-  pacs_root: null
-  protocol_path: shared/splits/pacs_sketch_seed6304.json
-  image_size: 256
-  crop_size: 224
-model:
-  backbone: resnet18
-  pretrained_weights: IMAGENET1K_V1
-  num_classes: 7
-batchnorm:
-  freeze_running_stats: true
-train:
-  optimizer: adamw
-  lr: 1.0e-4
-  weight_decay: 1.0e-4
-  max_epochs: 30
-  patience: 5
-  batch_per_source_domain: 8
-  batch_target: 24
 loss:
-  lambda_mmd: 1.0
+  lambda_mmd: 1.0 # main comparison; the controlled study varies it over {0.1, 1, 10}
   kernel_bandwidth_multipliers: [0.5, 1.0, 2.0]
-checkpoint_selection: mean_source_val_macro_f1
-output:
-  checkpoint: task2/results/dan/checkpoint.pt
-  metrics: task2/results/dan/metrics.jsonl
-
-# Controlled design study (Task 2, Step 6) -- vary this list if DAN is the chosen bounded study.
-# Main comparison above must keep loss.lambda_mmd == 1.0.
-controlled_study:
-  lambda_mmd_values: [0.1, 1.0, 10.0]

@@ -20,25 +20,34 @@ from torchvision.datasets import CIFAR10
 from task4.data.cifar10 import load_cifar10_split
 from task4.data.cifar100_unknowns import CIFAR100UnknownSubset
 from task4.methods.vanilla import build_eval_transform
+from task4.methods.proser import PROSERNet, load_proser
 from task4.models.resnet_cifar import penultimate_features, resnet18_cifar
 
 
 @torch.no_grad()
 def _extract(model: torch.nn.Module, loader: DataLoader, device: str) -> Dict[str, torch.Tensor]:
     model.eval()
-    all_features, all_logits, all_labels = [], [], []
+    all_features, all_logits, all_dummy, all_labels = [], [], [], []
     for images, labels in loader:
         images = images.to(device)
-        feats = penultimate_features(model, images)
-        logits = model.fc(feats)
+        if isinstance(model, PROSERNet):
+            feats = penultimate_features(model.base, images)
+            logits, dummy = model.base.fc(feats), model.dummy(feats)
+            all_dummy.append(dummy.cpu())
+        else:
+            feats = penultimate_features(model, images)
+            logits = model.fc(feats)
         all_features.append(feats.cpu())
         all_logits.append(logits.cpu())
         all_labels.append(labels)
-    return {
+    out = {
         "features": torch.cat(all_features),
-        "logits": torch.cat(all_logits),
+        "logits": torch.cat(all_logits),  # the ten KNOWN-class logits (PROSER: dummy logits are separate)
         "labels": torch.cat(all_labels),
     }
+    if all_dummy:
+        out["dummy_logits"] = torch.cat(all_dummy)
+    return out
 
 
 def extract_all_outputs(
@@ -50,9 +59,11 @@ def extract_all_outputs(
     device: str = "cuda",
     batch_size: int = 256,
 ) -> Dict[str, str]:
-    model = resnet18_cifar(num_classes=10).to(device)
-    state = torch.load(checkpoint_path, map_location=device)
-    model.load_state_dict(state["model_state"])
+    if method_name == "proser":
+        model = load_proser(checkpoint_path, device)
+    else:
+        model = resnet18_cifar(num_classes=10).to(device)
+        model.load_state_dict(torch.load(checkpoint_path, map_location=device)["model_state"])
 
     eval_tf = build_eval_transform()
     split = load_cifar10_split(split_path)
