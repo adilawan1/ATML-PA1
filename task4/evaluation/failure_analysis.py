@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 """Incorrectly-accepted-unknown inspection (Task 4, Step 6): using the vanilla MLS threshold,
-find unknown examples with score <= tau, i.e. accepted as a known class.
-
-TODO (Task 4, Day 5): given per-example (unknown_class_name, predicted_cifar10_class, score,
-tau) for the near and far groups, select >=3 examples from each and save them (plus the image
-itself) to `task4/results/failure_cases/` for the report's required evidence.
+find unknown examples with score <= tau, i.e. accepted as a known class. Used by
+`task4.evaluate_osr.build_failure_cases`, which selects >=3 near and >=3 far examples and
+writes them to `task4/results/failure_cases.json`.
 """
 
 from typing import Dict, List, Sequence
