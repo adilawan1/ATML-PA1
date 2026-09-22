@@ -1,0 +1,15 @@
+{
+  "seed": 6304,
+  "epochs": 50,
+  "lr": 0.001,
+  "momentum": 0.9,
+  "weight_decay": 0.0005,
+  "batch_size": 128,
+  "beta_classifier_placeholder": 1.0,
+  "gamma_data_placeholder": 0.1,
+  "num_dummy": 5,
+  "mixup_beta_alpha": 2.0,
+  "detection_temperature": 1024.0,
+  "initialized_from": "/content/drive/MyDrive/atml_pa1/checkpoints/task4/vanilla/checkpoint.pt",
+  "cosine_schedule": true
+}

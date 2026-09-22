@@ -1,48 +1,48 @@
 {
   "near": [
     {
+      "index": 0,
+      "unknown_class": "camel",
+      "predicted_known_class": "bird",
+      "score": -7.7622904777526855,
+      "threshold": -5.882077693939209
+    },
+    {
       "index": 1,
       "unknown_class": "wolf",
-      "predicted_known_class": "dog",
-      "score": -8.02894401550293,
-      "threshold": -5.9608001708984375
+      "predicted_known_class": "cat",
+      "score": -8.89168643951416,
+      "threshold": -5.882077693939209
     },
     {
       "index": 2,
       "unknown_class": "pickup_truck",
-      "predicted_known_class": "automobile",
-      "score": -6.490688800811768,
-      "threshold": -5.9608001708984375
-    },
-    {
-      "index": 3,
-      "unknown_class": "pickup_truck",
-      "predicted_known_class": "automobile",
-      "score": -6.345971584320068,
-      "threshold": -5.9608001708984375
+      "predicted_known_class": "truck",
+      "score": -7.796535968780518,
+      "threshold": -5.882077693939209
     }
   ],
   "far": [
     {
+      "index": 1,
+      "unknown_class": "keyboard",
+      "predicted_known_class": "ship",
+      "score": -10.14806079864502,
+      "threshold": -5.882077693939209
+    },
+    {
       "index": 2,
       "unknown_class": "chair",
       "predicted_known_class": "airplane",
-      "score": -6.521900653839111,
-      "threshold": -5.9608001708984375
+      "score": -6.858307838439941,
+      "threshold": -5.882077693939209
     },
     {
       "index": 3,
       "unknown_class": "clock",
-      "predicted_known_class": "ship",
-      "score": -6.062178134918213,
-      "threshold": -5.9608001708984375
-    },
-    {
-      "index": 4,
-      "unknown_class": "bottle",
-      "predicted_known_class": "bird",
-      "score": -8.562071800231934,
-      "threshold": -5.9608001708984375
+      "predicted_known_class": "automobile",
+      "score": -6.087237358093262,
+      "threshold": -5.882077693939209
     }
   ]
 }
