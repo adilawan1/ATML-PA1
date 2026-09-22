@@ -266,6 +266,7 @@ def main():
         print(f"  [{status:7s}] {item:<{width}}  {msg}")
     problems = sum(r[2] == "MISSING" for r in results)
     warns = sum(r[2] == "WARN" for r in results)
+    passed = sum(r[2] == "PASS" for r in results)
 
     if not args.no_git:
         print("\n== Repository state")
@@ -273,8 +274,9 @@ def main():
             print(f"  [{status:7s}] {item}  {msg}")
             problems += status == "MISSING"
             warns += status == "WARN"
+            passed += status == "PASS"
 
-    print(f"\n{sum(r[2] == 'PASS' for r in results)} passed, {problems} missing, {warns} warnings")
+    print(f"\n{passed} passed, {problems} missing, {warns} warnings")
     return 1 if problems else 0
 
 
