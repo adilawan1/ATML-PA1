@@ -191,8 +191,13 @@ def resolve(pattern):
     return [p for p in glob.glob(pattern) if os.path.isfile(p) and os.path.getsize(p) > 0]
 
 
-def tracked(path):
-    return bool(run("git", "ls-files", "--", path))
+def committed_clean(path):
+    """Tracked by git AND the working copy matches HEAD -- a path can be `git ls-files`-tracked
+    from an old commit while its current content is unstaged/uncommitted local changes, which a
+    plain tracked-or-not check would miss entirely."""
+    if not run("git", "ls-files", "--", path):
+        return False
+    return not run("git", "status", "--porcelain", "--", path)
 
 
 def audit():
@@ -202,7 +207,7 @@ def audit():
         if missing:
             results.append((task, item, "MISSING" if severity == "required" else "WARN", "not found: " + ", ".join(missing)))
             continue
-        uncommitted = [p for p in paths if not any(tracked(m) for m in resolve(p))]
+        uncommitted = [p for p in paths if not any(committed_clean(m) for m in resolve(p))]
         if uncommitted and task != "Repo":
             results.append((task, item, "MISSING" if severity == "required" else "WARN", "exists but not committed: " + ", ".join(uncommitted)))
             continue
