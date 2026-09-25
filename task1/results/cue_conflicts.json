@@ -1,0 +1,354 @@
+{
+  "n_conflicts": 250,
+  "totals": {
+    "candidates": 400,
+    "accepted_by_rule": 299,
+    "rejected_by_rule": 101,
+    "kept": 250
+  },
+  "rule": "Reject unless (1) coarse Sobel gradient-magnitude correlation(content, stylized) >= min_structure_corr, (2) color-statistics shift toward the style image >= min_style_shift, and (3) color-statistics gap(content, style) >= min_style_gap. Image statistics only; no model predictions.",
+  "predictors": {
+    "resnet50": {
+      "n_shape": 131,
+      "n_texture": 22,
+      "n_other": 97,
+      "shape_bias_pct": 85.62091503267973,
+      "coverage_pct": 61.2,
+      "clean_content_accuracy": 0.964,
+      "by_pair_direction": {
+        "cat-car | shape=car, texture=cat": {
+          "n_shape": 14,
+          "n_texture": 1,
+          "n_other": 10,
+          "shape_bias_pct": 93.33333333333333,
+          "coverage_pct": 60.0
+        },
+        "cat-car | shape=cat, texture=car": {
+          "n_shape": 15,
+          "n_texture": 0,
+          "n_other": 10,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 60.0
+        },
+        "deer-airplane | shape=airplane, texture=deer": {
+          "n_shape": 0,
+          "n_texture": 5,
+          "n_other": 20,
+          "shape_bias_pct": 0.0,
+          "coverage_pct": 20.0
+        },
+        "deer-airplane | shape=deer, texture=airplane": {
+          "n_shape": 11,
+          "n_texture": 1,
+          "n_other": 13,
+          "shape_bias_pct": 91.66666666666667,
+          "coverage_pct": 48.0
+        },
+        "dog-truck | shape=dog, texture=truck": {
+          "n_shape": 7,
+          "n_texture": 4,
+          "n_other": 14,
+          "shape_bias_pct": 63.63636363636363,
+          "coverage_pct": 44.0
+        },
+        "dog-truck | shape=truck, texture=dog": {
+          "n_shape": 15,
+          "n_texture": 0,
+          "n_other": 10,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 60.0
+        },
+        "horse-ship | shape=horse, texture=ship": {
+          "n_shape": 15,
+          "n_texture": 3,
+          "n_other": 7,
+          "shape_bias_pct": 83.33333333333333,
+          "coverage_pct": 72.0
+        },
+        "horse-ship | shape=ship, texture=horse": {
+          "n_shape": 17,
+          "n_texture": 0,
+          "n_other": 8,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 68.0
+        },
+        "monkey-bird | shape=bird, texture=monkey": {
+          "n_shape": 23,
+          "n_texture": 0,
+          "n_other": 2,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 92.0
+        },
+        "monkey-bird | shape=monkey, texture=bird": {
+          "n_shape": 14,
+          "n_texture": 8,
+          "n_other": 3,
+          "shape_bias_pct": 63.63636363636363,
+          "coverage_pct": 88.0
+        }
+      }
+    },
+    "vit_b_16": {
+      "n_shape": 169,
+      "n_texture": 17,
+      "n_other": 64,
+      "shape_bias_pct": 90.86021505376344,
+      "coverage_pct": 74.4,
+      "clean_content_accuracy": 0.96,
+      "by_pair_direction": {
+        "cat-car | shape=car, texture=cat": {
+          "n_shape": 24,
+          "n_texture": 0,
+          "n_other": 1,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 96.0
+        },
+        "cat-car | shape=cat, texture=car": {
+          "n_shape": 13,
+          "n_texture": 1,
+          "n_other": 11,
+          "shape_bias_pct": 92.85714285714286,
+          "coverage_pct": 56.0
+        },
+        "deer-airplane | shape=airplane, texture=deer": {
+          "n_shape": 20,
+          "n_texture": 0,
+          "n_other": 5,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 80.0
+        },
+        "deer-airplane | shape=deer, texture=airplane": {
+          "n_shape": 9,
+          "n_texture": 10,
+          "n_other": 6,
+          "shape_bias_pct": 47.36842105263158,
+          "coverage_pct": 76.0
+        },
+        "dog-truck | shape=dog, texture=truck": {
+          "n_shape": 13,
+          "n_texture": 1,
+          "n_other": 11,
+          "shape_bias_pct": 92.85714285714286,
+          "coverage_pct": 56.0
+        },
+        "dog-truck | shape=truck, texture=dog": {
+          "n_shape": 15,
+          "n_texture": 0,
+          "n_other": 10,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 60.0
+        },
+        "horse-ship | shape=horse, texture=ship": {
+          "n_shape": 10,
+          "n_texture": 2,
+          "n_other": 13,
+          "shape_bias_pct": 83.33333333333333,
+          "coverage_pct": 48.0
+        },
+        "horse-ship | shape=ship, texture=horse": {
+          "n_shape": 18,
+          "n_texture": 1,
+          "n_other": 6,
+          "shape_bias_pct": 94.73684210526316,
+          "coverage_pct": 76.0
+        },
+        "monkey-bird | shape=bird, texture=monkey": {
+          "n_shape": 23,
+          "n_texture": 1,
+          "n_other": 1,
+          "shape_bias_pct": 95.83333333333333,
+          "coverage_pct": 96.0
+        },
+        "monkey-bird | shape=monkey, texture=bird": {
+          "n_shape": 24,
+          "n_texture": 1,
+          "n_other": 0,
+          "shape_bias_pct": 96.0,
+          "coverage_pct": 100.0
+        }
+      }
+    },
+    "clip_head": {
+      "n_shape": 174,
+      "n_texture": 16,
+      "n_other": 60,
+      "shape_bias_pct": 91.57894736842105,
+      "coverage_pct": 76.0,
+      "clean_content_accuracy": 0.968,
+      "by_pair_direction": {
+        "cat-car | shape=car, texture=cat": {
+          "n_shape": 22,
+          "n_texture": 1,
+          "n_other": 2,
+          "shape_bias_pct": 95.65217391304348,
+          "coverage_pct": 92.0
+        },
+        "cat-car | shape=cat, texture=car": {
+          "n_shape": 13,
+          "n_texture": 0,
+          "n_other": 12,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 52.0
+        },
+        "deer-airplane | shape=airplane, texture=deer": {
+          "n_shape": 19,
+          "n_texture": 0,
+          "n_other": 6,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 76.0
+        },
+        "deer-airplane | shape=deer, texture=airplane": {
+          "n_shape": 10,
+          "n_texture": 3,
+          "n_other": 12,
+          "shape_bias_pct": 76.92307692307692,
+          "coverage_pct": 52.0
+        },
+        "dog-truck | shape=dog, texture=truck": {
+          "n_shape": 13,
+          "n_texture": 5,
+          "n_other": 7,
+          "shape_bias_pct": 72.22222222222223,
+          "coverage_pct": 72.0
+        },
+        "dog-truck | shape=truck, texture=dog": {
+          "n_shape": 23,
+          "n_texture": 0,
+          "n_other": 2,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 92.0
+        },
+        "horse-ship | shape=horse, texture=ship": {
+          "n_shape": 19,
+          "n_texture": 0,
+          "n_other": 6,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 76.0
+        },
+        "horse-ship | shape=ship, texture=horse": {
+          "n_shape": 13,
+          "n_texture": 1,
+          "n_other": 11,
+          "shape_bias_pct": 92.85714285714286,
+          "coverage_pct": 56.0
+        },
+        "monkey-bird | shape=bird, texture=monkey": {
+          "n_shape": 23,
+          "n_texture": 1,
+          "n_other": 1,
+          "shape_bias_pct": 95.83333333333333,
+          "coverage_pct": 96.0
+        },
+        "monkey-bird | shape=monkey, texture=bird": {
+          "n_shape": 19,
+          "n_texture": 5,
+          "n_other": 1,
+          "shape_bias_pct": 79.16666666666667,
+          "coverage_pct": 96.0
+        }
+      }
+    },
+    "clip_zeroshot": {
+      "n_shape": 175,
+      "n_texture": 11,
+      "n_other": 64,
+      "shape_bias_pct": 94.08602150537635,
+      "coverage_pct": 74.4,
+      "clean_content_accuracy": 0.968,
+      "by_pair_direction": {
+        "cat-car | shape=car, texture=cat": {
+          "n_shape": 24,
+          "n_texture": 0,
+          "n_other": 1,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 96.0
+        },
+        "cat-car | shape=cat, texture=car": {
+          "n_shape": 12,
+          "n_texture": 1,
+          "n_other": 12,
+          "shape_bias_pct": 92.3076923076923,
+          "coverage_pct": 52.0
+        },
+        "deer-airplane | shape=airplane, texture=deer": {
+          "n_shape": 11,
+          "n_texture": 0,
+          "n_other": 14,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 44.0
+        },
+        "deer-airplane | shape=deer, texture=airplane": {
+          "n_shape": 10,
+          "n_texture": 0,
+          "n_other": 15,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 40.0
+        },
+        "dog-truck | shape=dog, texture=truck": {
+          "n_shape": 12,
+          "n_texture": 1,
+          "n_other": 12,
+          "shape_bias_pct": 92.3076923076923,
+          "coverage_pct": 52.0
+        },
+        "dog-truck | shape=truck, texture=dog": {
+          "n_shape": 21,
+          "n_texture": 0,
+          "n_other": 4,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 84.0
+        },
+        "horse-ship | shape=horse, texture=ship": {
+          "n_shape": 20,
+          "n_texture": 1,
+          "n_other": 4,
+          "shape_bias_pct": 95.23809523809524,
+          "coverage_pct": 84.0
+        },
+        "horse-ship | shape=ship, texture=horse": {
+          "n_shape": 23,
+          "n_texture": 0,
+          "n_other": 2,
+          "shape_bias_pct": 100.0,
+          "coverage_pct": 92.0
+        },
+        "monkey-bird | shape=bird, texture=monkey": {
+          "n_shape": 24,
+          "n_texture": 1,
+          "n_other": 0,
+          "shape_bias_pct": 96.0,
+          "coverage_pct": 100.0
+        },
+        "monkey-bird | shape=monkey, texture=bird": {
+          "n_shape": 18,
+          "n_texture": 7,
+          "n_other": 0,
+          "shape_bias_pct": 72.0,
+          "coverage_pct": 100.0
+        }
+      }
+    }
+  },
+  "representation_stability": {
+    "resnet50": 0.371049702167511,
+    "vit_b_16": 0.37505099177360535,
+    "clip_vitb32": 0.7404832243919373
+  },
+  "examples": {
+    "all_shape": [
+      1,
+      3
+    ],
+    "all_texture": [
+      218
+    ],
+    "disagree_shape_vs_texture": [
+      2,
+      24
+    ],
+    "all_other": [
+      0,
+      4
+    ]
+  }
+}
