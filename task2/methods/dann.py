@@ -38,7 +38,7 @@ class DANN(Method):
         self.disc.train()
 
     def discriminator_input(self, features: torch.Tensor, logits: torch.Tensor) -> torch.Tensor:
-        return features
+        return F.normalize(features, dim=1)
 
     def step(self, batch: Batch, optimizer, progress: float) -> Dict[str, torch.Tensor]:
         n_source = batch.source_x.size(0)
@@ -54,6 +54,7 @@ class DANN(Method):
 
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(list(self.model.parameters()) + list(self.disc.parameters()), max_norm=1.0)
         optimizer.step()
         return {
             "cls_loss": cls_loss.detach(),

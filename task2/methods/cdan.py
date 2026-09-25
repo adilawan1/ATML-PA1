@@ -9,6 +9,7 @@ detached, per the spec.
 """
 
 import torch
+import torch.nn.functional as F
 
 from task2.methods.dann import DANN
 
@@ -22,4 +23,4 @@ class CDAN(DANN):
     discriminator_input_dim = 512 * 7
 
     def discriminator_input(self, features: torch.Tensor, logits: torch.Tensor) -> torch.Tensor:
-        return multilinear_map(features, torch.softmax(logits, dim=1))
+        return multilinear_map(F.normalize(features, dim=1), torch.softmax(logits, dim=1))

@@ -34,3 +34,8 @@ figures `report/figures/task2_curves.png`, `task2_study_<dan|dann>_curves.png`.
   batch (DAN's convention), 24 source vs. 24 target features per step.
 - **Domain separability**: frozen backbone, equal numbers of source-val and (randomly drawn) target features,
   70/30 split (seed 6304), balanced logistic regression C = 1; 50% = chance. Lower is not automatically better.
+- **DANN/CDAN training instability**: both showed a numerical blowup (source accuracy collapsing well below
+  Source-only, huge/erratic losses) traced to unbounded feature scale feeding the discriminator through GRL.
+  Gradient clipping (`max_norm=1.0`) + L2-normalizing the discriminator's input (`dann.py`/`cdan.py`) stabilized
+  **CDAN** (adopted as the reported result) but did **not** stabilize **DANN**, which remains unstable under
+  identical fixes -- `task2/results/dann/` predates this code change and reflects the original, unfixed run.
