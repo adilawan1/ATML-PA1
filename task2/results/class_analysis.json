@@ -135,39 +135,39 @@
   },
   "cdan": {
     "per_class_change": {
-      "dog": -0.7720207253886011,
-      "elephant": -0.5378378378378379,
-      "giraffe": -0.2868525896414343,
-      "guitar": -0.975328947368421,
+      "dog": -0.3691709844559586,
+      "elephant": -0.5391891891891892,
+      "giraffe": -0.14873837981407706,
+      "guitar": -0.944078947368421,
       "horse": -0.6764705882352942,
-      "house": -0.8624999999999999,
-      "person": 0.03125
+      "house": -0.6499999999999999,
+      "person": -0.45625000000000004
     },
     "most_improved": [
       {
-        "class": "person",
-        "acc_baseline": 0.89375,
-        "acc_run": 0.925,
-        "dominant_confusion_baseline": {
-          "as": "dog",
-          "share": 0.1
-        },
-        "dominant_confusion_run": {
-          "as": "elephant",
-          "share": 0.0625
-        }
-      },
-      {
         "class": "giraffe",
         "acc_baseline": 0.2868525896414343,
-        "acc_run": 0.0,
+        "acc_run": 0.13811420982735723,
         "dominant_confusion_baseline": {
           "as": "dog",
           "share": 0.4209827357237716
         },
         "dominant_confusion_run": {
+          "as": "dog",
+          "share": 0.5192563081009296
+        }
+      },
+      {
+        "class": "dog",
+        "acc_baseline": 0.8212435233160622,
+        "acc_run": 0.4520725388601036,
+        "dominant_confusion_baseline": {
+          "as": "horse",
+          "share": 0.08937823834196891
+        },
+        "dominant_confusion_run": {
           "as": "person",
-          "share": 0.7290836653386454
+          "share": 0.5181347150259067
         }
       }
     ],
@@ -175,27 +175,27 @@
       {
         "class": "guitar",
         "acc_baseline": 0.975328947368421,
-        "acc_run": 0.0,
+        "acc_run": 0.03125,
         "dominant_confusion_baseline": {
           "as": "dog",
           "share": 0.014802631578947368
         },
         "dominant_confusion_run": {
-          "as": "person",
-          "share": 0.8980263157894737
+          "as": "dog",
+          "share": 0.7154605263157895
         }
       },
       {
-        "class": "house",
-        "acc_baseline": 0.8875,
-        "acc_run": 0.025,
+        "class": "horse",
+        "acc_baseline": 0.6764705882352942,
+        "acc_run": 0.0,
         "dominant_confusion_baseline": {
-          "as": "guitar",
-          "share": 0.0375
+          "as": "dog",
+          "share": 0.2965686274509804
         },
         "dominant_confusion_run": {
-          "as": "person",
-          "share": 0.875
+          "as": "dog",
+          "share": 0.5183823529411765
         }
       }
     ]
