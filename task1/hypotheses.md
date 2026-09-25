@@ -10,13 +10,13 @@ this file is complete and committed, so the git history shows the order.
 
 ## Required before you commit Task 1 results
 
-| Design choice | Setting | Metric(s) | Hypothesis (write before results) |
-|---|---|---|---|
-| Dataset | STL-10 | -- | |
-| Additional color intervention | Hue rotation by 180 degrees (`hue_shift: 0.5` in `configs/task1.yaml`) | accuracy change vs. clean; prediction consistency vs. clean; per-class accuracy | |
-| Cue-conflict class pairs | (fill in once chosen) | shape bias %, coverage %, shape/texture/other counts | |
+| Design choice                 | Setting                                                                | Metric(s)                                                                       | Hypothesis (write before results)                                                                                                |
+| ----------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Dataset                       | STL-10                                                                 | --                                                                              | I chose STL-10 because it has 10 distinct classes and less compute cost than Pets, matching the assignment's own recommendation. |
+| Additional color intervention | Hue rotation by 180 degrees (`hue_shift: 0.5` in `configs/task1.yaml`) | accuracy change vs. clean; prediction consistency vs. clean; per-class accuracy | 1. CLIP-head<br>2. CLIP-zeroshot<br>3. ViT-B/16<br>4. ResNet50<br><br>I believe that ResNet is a texture reliant model as per Geihro's Findings, which is why I have kept it at the lowest. Here the model which is texture reliant won't be affected much by rotation since the primary cue it pattern. |
+| Cue-conflict class pairs | (fill in once chosen) | shape bias %, coverage %, shape/texture/other counts | CLIP-zeroshot, CLIP-head, ViT-B/16, ResNet50<br><br>CLIP will have a shape Bias because it was never intended for classification, rather it was there to match captions, Moreover, a texture shortcut that works on imagenet's narrower categories may not generalize across CLIP's far more diverse training images, pushing it towards a cue (shape) that holds off across its path. The CLIP-head is fit on STL-10's own small training set which in my opinion will push ordinary classifiers towards the texture shortcuts in the first place. |
 | Cue-conflict style strength | (fill in once chosen) | same as above; also visual acceptance rate | |
-| Representation visualization | t-SNE, perplexity 30, seed 6304, PCA init, one joint fit per (backbone, condition) | cosine stability I_T; qualitative cluster mixing between clean and transformed points | |
+| Representation visualization | t-SNE, perplexity 30, seed 6304, PCA init, one joint fit per (backbone, condition) | cosine stability I_T; qualitative cluster mixing between clean and transformed points | I expect the resnet to move the least since it focuses on local level patches rather than a global perspective |
 
 ## Optional -- not required to commit, but worth predicting for a stronger report
 
@@ -24,7 +24,7 @@ Translation and patch structure aren't "design choices" in the assignment's sens
 deltas/grid are fixed by the spec, not chosen by you), so these aren't required before you
 interpret the results. Fill them in whenever you're ready; leaving them as-is doesn't block anything.
 
-| Intervention | Setting | Metric(s) | Hypothesis (optional) |
-|---|---|---|---|
-| Translation | 0 / 8 / 16 / 32 px, four cardinal directions, reflection padding | accuracy and prediction consistency vs. displacement | (optional -- not required to commit) |
+| Intervention    | Setting                                                                 | Metric(s)                                                              | Hypothesis (optional)                |
+| --------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------ |
+| Translation     | 0 / 8 / 16 / 32 px, four cardinal directions, reflection padding        | accuracy and prediction consistency vs. displacement                   | (optional -- not required to commit) |
 | Patch structure | 4x4 pixel-space grid, one non-identity permutation per image, seed 6304 | accuracy drop; prediction consistency; mean confidence after shuffling | (optional -- not required to commit) |
