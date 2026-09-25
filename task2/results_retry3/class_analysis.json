@@ -1,0 +1,136 @@
+{
+  "dann": {
+    "per_class_change": {
+      "dog": -0.8212435233160622,
+      "elephant": -0.5513513513513514,
+      "giraffe": -0.21912350597609564,
+      "guitar": -0.975328947368421,
+      "horse": -0.6764705882352942,
+      "house": -0.8875,
+      "person": 0.08124999999999993
+    },
+    "most_improved": [
+      {
+        "class": "person",
+        "acc_baseline": 0.89375,
+        "acc_run": 0.975,
+        "dominant_confusion_baseline": {
+          "as": "dog",
+          "share": 0.1
+        },
+        "dominant_confusion_run": {
+          "as": "giraffe",
+          "share": 0.025
+        }
+      },
+      {
+        "class": "giraffe",
+        "acc_baseline": 0.2868525896414343,
+        "acc_run": 0.06772908366533864,
+        "dominant_confusion_baseline": {
+          "as": "dog",
+          "share": 0.4209827357237716
+        },
+        "dominant_confusion_run": {
+          "as": "person",
+          "share": 0.9322709163346613
+        }
+      }
+    ],
+    "most_degraded": [
+      {
+        "class": "guitar",
+        "acc_baseline": 0.975328947368421,
+        "acc_run": 0.0,
+        "dominant_confusion_baseline": {
+          "as": "dog",
+          "share": 0.014802631578947368
+        },
+        "dominant_confusion_run": {
+          "as": "person",
+          "share": 0.9967105263157895
+        }
+      },
+      {
+        "class": "house",
+        "acc_baseline": 0.8875,
+        "acc_run": 0.0,
+        "dominant_confusion_baseline": {
+          "as": "guitar",
+          "share": 0.0375
+        },
+        "dominant_confusion_run": {
+          "as": "person",
+          "share": 0.9875
+        }
+      }
+    ]
+  },
+  "cdan": {
+    "per_class_change": {
+      "dog": 0.011658031088082832,
+      "elephant": -0.5486486486486487,
+      "giraffe": -0.07304116865869856,
+      "guitar": -0.975328947368421,
+      "horse": -0.670343137254902,
+      "house": -0.3374999999999999,
+      "person": -0.8500000000000001
+    },
+    "most_improved": [
+      {
+        "class": "dog",
+        "acc_baseline": 0.8212435233160622,
+        "acc_run": 0.832901554404145,
+        "dominant_confusion_baseline": {
+          "as": "horse",
+          "share": 0.08937823834196891
+        },
+        "dominant_confusion_run": {
+          "as": "house",
+          "share": 0.09844559585492228
+        }
+      },
+      {
+        "class": "giraffe",
+        "acc_baseline": 0.2868525896414343,
+        "acc_run": 0.21381142098273573,
+        "dominant_confusion_baseline": {
+          "as": "dog",
+          "share": 0.4209827357237716
+        },
+        "dominant_confusion_run": {
+          "as": "dog",
+          "share": 0.7250996015936255
+        }
+      }
+    ],
+    "most_degraded": [
+      {
+        "class": "guitar",
+        "acc_baseline": 0.975328947368421,
+        "acc_run": 0.0,
+        "dominant_confusion_baseline": {
+          "as": "dog",
+          "share": 0.014802631578947368
+        },
+        "dominant_confusion_run": {
+          "as": "dog",
+          "share": 0.6365131578947368
+        }
+      },
+      {
+        "class": "person",
+        "acc_baseline": 0.89375,
+        "acc_run": 0.04375,
+        "dominant_confusion_baseline": {
+          "as": "dog",
+          "share": 0.1
+        },
+        "dominant_confusion_run": {
+          "as": "dog",
+          "share": 0.825
+        }
+      }
+    ]
+  }
+}
