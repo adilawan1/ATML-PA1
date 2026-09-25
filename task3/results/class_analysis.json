@@ -1,0 +1,136 @@
+{
+  "dan_dg": {
+    "per_class_change": {
+      "dog": -0.37046632124352336,
+      "elephant": 0.3608108108108108,
+      "giraffe": 0.4727755644090305,
+      "guitar": -0.1546052631578947,
+      "horse": -0.18627450980392163,
+      "house": -0.25,
+      "person": -0.44375000000000003
+    },
+    "most_improved": [
+      {
+        "class": "giraffe",
+        "acc_baseline": 0.2868525896414343,
+        "acc_run": 0.7596281540504648,
+        "dominant_confusion_baseline": {
+          "as": "dog",
+          "share": 0.4209827357237716
+        },
+        "dominant_confusion_run": {
+          "as": "elephant",
+          "share": 0.1049136786188579
+        }
+      },
+      {
+        "class": "elephant",
+        "acc_baseline": 0.5513513513513514,
+        "acc_run": 0.9121621621621622,
+        "dominant_confusion_baseline": {
+          "as": "dog",
+          "share": 0.4175675675675676
+        },
+        "dominant_confusion_run": {
+          "as": "dog",
+          "share": 0.062162162162162166
+        }
+      }
+    ],
+    "most_degraded": [
+      {
+        "class": "person",
+        "acc_baseline": 0.89375,
+        "acc_run": 0.45,
+        "dominant_confusion_baseline": {
+          "as": "dog",
+          "share": 0.1
+        },
+        "dominant_confusion_run": {
+          "as": "giraffe",
+          "share": 0.36875
+        }
+      },
+      {
+        "class": "dog",
+        "acc_baseline": 0.8212435233160622,
+        "acc_run": 0.45077720207253885,
+        "dominant_confusion_baseline": {
+          "as": "horse",
+          "share": 0.08937823834196891
+        },
+        "dominant_confusion_run": {
+          "as": "elephant",
+          "share": 0.29922279792746115
+        }
+      }
+    ]
+  },
+  "sam": {
+    "per_class_change": {
+      "dog": -0.47020725388601037,
+      "elephant": 0.3864864864864864,
+      "giraffe": 0.39973439575033193,
+      "guitar": -0.05756578947368418,
+      "horse": 0.11274509803921562,
+      "house": 0.050000000000000044,
+      "person": -0.050000000000000044
+    },
+    "most_improved": [
+      {
+        "class": "giraffe",
+        "acc_baseline": 0.2868525896414343,
+        "acc_run": 0.6865869853917662,
+        "dominant_confusion_baseline": {
+          "as": "dog",
+          "share": 0.4209827357237716
+        },
+        "dominant_confusion_run": {
+          "as": "horse",
+          "share": 0.1341301460823373
+        }
+      },
+      {
+        "class": "elephant",
+        "acc_baseline": 0.5513513513513514,
+        "acc_run": 0.9378378378378378,
+        "dominant_confusion_baseline": {
+          "as": "dog",
+          "share": 0.4175675675675676
+        },
+        "dominant_confusion_run": {
+          "as": "dog",
+          "share": 0.025675675675675677
+        }
+      }
+    ],
+    "most_degraded": [
+      {
+        "class": "dog",
+        "acc_baseline": 0.8212435233160622,
+        "acc_run": 0.35103626943005184,
+        "dominant_confusion_baseline": {
+          "as": "horse",
+          "share": 0.08937823834196891
+        },
+        "dominant_confusion_run": {
+          "as": "elephant",
+          "share": 0.31088082901554404
+        }
+      },
+      {
+        "class": "guitar",
+        "acc_baseline": 0.975328947368421,
+        "acc_run": 0.9177631578947368,
+        "dominant_confusion_baseline": {
+          "as": "dog",
+          "share": 0.014802631578947368
+        },
+        "dominant_confusion_run": {
+          "as": "elephant",
+          "share": 0.05263157894736842
+        }
+      }
+    ]
+  }
+}
